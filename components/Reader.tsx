@@ -123,6 +123,7 @@ export function Reader({
   const textRef = useRef<HTMLDivElement | null>(null);
   const abort = useRef<AbortController | null>(null);
   const autoFired = useRef(false);
+  const runSeq = useRef(0);
 
   const blocks = useMemo(() => splitBlocks(bodyText), [bodyText]);
   const [streamed, setStreamed] = useState("");
@@ -170,8 +171,13 @@ export function Reader({
 
   const shown = live ?? latest;
 
+  // Asking again supersedes whatever is in flight — the reader's last request is
+  // the one they meant. A sequence token keeps the abandoned run from writing
+  // over the new one's state when it unwinds.
   async function run(selection: { start: number; end: number } | null, mode: "passage" | "page") {
-    if (!canRun || running) return;
+    if (!canRun) return;
+    const seq = ++runSeq.current;
+    abort.current?.abort();
     setRunning(true);
     setStreamed("");
     setError("");
@@ -201,7 +207,7 @@ export function Reader({
         acc += decoder.decode(value, { stream: true });
         setStreamed(acc);
       }
-      if (selection && acc.trim()) {
+      if (selection && acc.trim() && seq === runSeq.current) {
         const known = sessionHighlights.get(contentItemId) ?? [];
         if (!known.some((r) => r.start === selection.start && r.end === selection.end)) {
           const next = [...known, selection];
@@ -210,17 +216,23 @@ export function Reader({
         }
       }
     } catch (e) {
-      if ((e as Error).name !== "AbortError") setError((e as Error).message);
+      if ((e as Error).name !== "AbortError" && seq === runSeq.current) {
+        setError((e as Error).message);
+      }
     } finally {
-      setRunning(false);
-      setPending(null);
-      abort.current = null;
-      router.refresh();
+      if (seq === runSeq.current) {
+        setRunning(false);
+        setPending(null);
+        abort.current = null;
+        router.refresh();
+      }
     }
   }
 
   function stop() {
+    runSeq.current++; // a stopped run must not write state when it unwinds
     abort.current?.abort();
+    abort.current = null;
     setRunning(false);
     setPending(null);
   }
