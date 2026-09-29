@@ -63,6 +63,7 @@ export async function setContentProfile(formData: FormData): Promise<void> {
   const content_item_id = formData.get("content_item_id") as string;
   const target_language = formData.get("target_language") as string;
   const comprehension_depth = formData.get("comprehension_depth") as string;
+  const domain = (formData.get("domain") as string) || "general";
 
   const { data: existing } = await supabase
     .from("content_profile")
@@ -74,7 +75,7 @@ export async function setContentProfile(formData: FormData): Promise<void> {
   if (existing) {
     const res = await supabase
       .from("content_profile")
-      .update({ target_language, comprehension_depth })
+      .update({ target_language, comprehension_depth, domain })
       .eq("id", existing.id);
     error = res.error;
   } else {
@@ -82,6 +83,7 @@ export async function setContentProfile(formData: FormData): Promise<void> {
       content_item_id,
       target_language,
       comprehension_depth,
+      domain,
     });
     error = res.error;
   }
@@ -125,6 +127,7 @@ export async function understand(formData: FormData): Promise<void> {
     .maybeSingle();
   const target_language = profile?.target_language || "en";
   const comprehension_depth = profile?.comprehension_depth || "intermediate";
+  const domain = (profile?.domain as "general" | "literary" | "scientific" | "legal") || "general";
 
   let etId: string;
   const { data: existingEt } = await supabase
@@ -154,6 +157,7 @@ export async function understand(formData: FormData): Promise<void> {
       text,
       targetLanguage: target_language,
       comprehensionDepth: comprehension_depth as "beginner" | "intermediate" | "advanced",
+      domain,
     });
     const { error } = await supabase.from("ai_result").insert({
       extracted_text_id: etId,
@@ -241,6 +245,7 @@ export async function connectProvider(formData: FormData): Promise<void> {
   const content_item_id = formData.get("content_item_id") as string;
   const provider = formData.get("provider") as string;
   const api_key = (formData.get("api_key") as string) || "";
+  const model = (formData.get("model") as string) || null;
 
   if (api_key.trim()) {
     const { data: existing } = await supabase
@@ -252,13 +257,14 @@ export async function connectProvider(formData: FormData): Promise<void> {
     if (existing) {
       await supabase
         .from("provider_connection")
-        .update({ credential_ref: api_key, is_default: true })
+        .update({ credential_ref: api_key, model, is_default: true })
         .eq("id", existing.id);
     } else {
       await supabase.from("provider_connection").insert({
         user_id: data.user.id,
         provider,
         credential_ref: api_key,
+        model,
         is_default: true,
       });
     }
