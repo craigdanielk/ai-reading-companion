@@ -10,7 +10,7 @@ function Submit({ canSubmit }: { canSubmit: boolean }) {
     <button
       type="submit"
       disabled={!canSubmit || pending}
-      className="rounded-pill bg-ember px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ember-700 disabled:opacity-40"
+      className="rounded-pill bg-ember px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-ember-700 disabled:opacity-40"
     >
       {pending ? "Understanding…" : "Understand"}
     </button>
@@ -20,7 +20,7 @@ function Submit({ canSubmit }: { canSubmit: boolean }) {
 export function Compose({ bookId, autoFocus }: { bookId?: string | null; autoFocus?: boolean }) {
   const [text, setText] = useState("");
   return (
-    <form action={createText} className="rounded-card border border-line bg-paper-2/40 p-3">
+    <form action={createText}>
       {bookId ? <input type="hidden" name="book_id" value={bookId} /> : null}
       <textarea
         name="body_text"
@@ -30,12 +30,12 @@ export function Compose({ bookId, autoFocus }: { bookId?: string | null; autoFoc
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") e.currentTarget.form?.requestSubmit();
         }}
-        rows={3}
-        placeholder="Paste or type a passage to understand…"
-        className="w-full resize-y rounded-input border border-line bg-paper px-3 py-3 text-[15px] leading-relaxed text-ink"
+        rows={2}
+        placeholder="Paste something you want to understand…"
+        className="w-full resize-y rounded-[10px] bg-paper-2/60 px-4 py-3.5 text-[15px] leading-relaxed text-ink transition-colors placeholder:text-muted focus:bg-paper-2"
       />
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs text-muted">Kept automatically &middot; titled from its own first line</span>
+        <span className="text-[11.5px] text-muted">Named from its own first line</span>
         <Submit canSubmit={text.trim().length > 0} />
       </div>
     </form>

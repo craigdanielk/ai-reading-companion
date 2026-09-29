@@ -305,7 +305,8 @@ export function Reader({
 
   return (
     <div className="mx-auto w-full max-w-[42rem] px-5 py-10 lg:max-w-[64rem] lg:px-10 lg:py-16">
-      <header className="lg:max-w-[42rem]">
+      <div className="lg:grid lg:grid-cols-[minmax(0,42rem)_19rem] lg:items-start lg:gap-x-[3.5rem]">
+      <header>
         <h1 className="font-display text-[28px] font-semibold leading-[1.2] text-ink lg:text-[32px]">
           {title}
         </h1>
@@ -335,16 +336,15 @@ export function Reader({
       </header>
 
       {(wholeText || (live?.mode === "page" && running)) && (
-        <section className="gloss-in mt-6 lg:max-w-[42rem]">
-          <div className="rounded-[4px] border-l-2 border-sun bg-paper-2/40 py-3 pl-4 pr-3">
-            {live?.mode === "page" && running && !live.understanding ? (
-              <Skeleton />
-            ) : (
-              <GlossBody r={wholeText!} hard />
-            )}
-          </div>
-        </section>
+        <aside className="gloss-in mt-5 border-l border-line pl-4 lg:mt-[6px] lg:border-l-0 lg:pl-0">
+          {live?.mode === "page" && running && !live.understanding ? (
+            <Skeleton />
+          ) : (
+            <GlossBody r={wholeText!} hard />
+          )}
+        </aside>
       )}
+      </div>
 
       {!hasAny && !running && canRun && (
         <p className="mt-6 text-[13px] text-muted lg:max-w-[42rem]">

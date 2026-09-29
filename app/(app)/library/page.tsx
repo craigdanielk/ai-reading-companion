@@ -61,20 +61,22 @@ export default async function LibraryPage() {
                     coverUrl={b.cover_url}
                     className="transition-transform duration-200 ease-out group-hover:-translate-y-1"
                   />
-                  <p className="mt-3 truncate font-display text-[15px] font-semibold text-ink">{b.title}</p>
-                  <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11.5px] text-muted">
+                  <div className="mt-3 flex items-center gap-1.5 truncate text-[12px] text-muted">
+                    {b.cover_url && (
+                      <span className="truncate font-display text-[14px] font-semibold text-ink">{b.title}</span>
+                    )}
                     {b.author ? (
                       <span className="truncate">{b.author}</span>
                     ) : langs ? (
                       <>
                         <LangBadge code={langs.source} size="sm" />
-                        <span>&rarr;</span>
+                        <span className="text-line">&rarr;</span>
                         <LangBadge code={langs.target} size="sm" />
                       </>
                     ) : (
-                      <span>Empty</span>
+                      !b.cover_url && <span>Empty</span>
                     )}
-                  </p>
+                  </div>
                 </Link>
               </li>
             );
