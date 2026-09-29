@@ -1,26 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Type */
+  --font-fraunces: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-inter: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Neutrals (warm — never pure black/white for text surfaces) */
+  --ink: #221B17;
+  --ink-soft: #5A4B41;
+  --muted: #8C7A6B;
+  --line: #E8DFD5;
+  --paper: #FDFAF6;
+  --paper-2: #F6EEE5;
+
+  /* Primary — Ember */
+  --ember-500: #E4573D;
+  --ember-600: #C63C24;
+  --ember-700: #A32F1B;
+
+  /* Accents */
+  --sun: #F2B33D;
+  --sea: #2E9E8F;
+  --iris: #6C5CE0;
+
+  /* Semantic */
+  --success: #2E7D5B;
+  --warning: #8A5A00;
+  --danger: #B3261E;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ember: var(--ember-600);
+  --color-ember-500: var(--ember-500);
+  --color-ember-700: var(--ember-700);
+  --color-sun: var(--sun);
+  --color-sea: var(--sea);
+  --color-iris: var(--iris);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+
+  --radius-input: 10px;
+  --radius-card: 16px;
+  --radius-sheet: 24px;
+  --radius-pill: 999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { -webkit-text-size-adjust: 100%; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-inter);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Reading measure: 45–75 characters per line */
+.prose-measure { max-width: 68ch; }
+
+::selection { background: var(--sun); color: var(--ink); }
+
+:focus-visible {
+  outline: 2px solid var(--ember-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

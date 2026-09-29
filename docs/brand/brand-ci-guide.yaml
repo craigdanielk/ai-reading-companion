@@ -1,0 +1,211 @@
+schema_version: brand-ci-guide-v1
+tier: core
+
+meta:
+  brand_name: AI Reading Companion
+  guide_title: AI Reading Companion — Brand & Identity Guide
+  version: "1.0"
+  date: 2026-09-29
+  owner: Craig (adel tenant)
+  classification: Internal
+  contact: craigdanielk@gmail.com
+  purpose: >-
+    Define the visual and verbal identity for AI Reading Companion so product,
+    engineering and future collaborators build one coherent, accessible,
+    recognisably friendly experience — mobile first, desktop second.
+  audience: [design, engineering, product, client (Adel Necib)]
+
+theme:
+  font_import: https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap
+
+foundation:
+  mission: Help readers understand what they read, in any language.
+  vision: A world where language is never the reason someone fails to understand.
+  positioning: >-
+    Not a translator. A comprehension companion: it keeps the meaning, tone,
+    register and cultural nuance of the original, and explains what a flat
+    translation would lose.
+  core_principle: Understand, don't just convert.
+  audiences:
+    - {name: Curious readers, need: read books and articles written in a language they only partly know}
+    - {name: Students and researchers, need: read scientific and technical material precisely, without losing hedging}
+    - {name: Professionals, need: handle foreign-language documents without flattening meaning}
+    - {name: Language learners, need: see how the original is built, not just a rendering}
+  values:
+    - {name: Clarity, text: Plain words. Never clever at the reader's expense.}
+    - {name: Warmth, text: Encouraging, never condescending. The reader is doing something hard.}
+    - {name: Respect for the original, text: We preserve the author's meaning, not our own paraphrase.}
+    - {name: Craft, text: Friendly does not mean sloppy. Spacing, contrast and typography are cared for.}
+
+architecture:
+  tree:
+    - {name: AI Reading Companion, role: Product, level: 0, visibility: public}
+    - {name: Understanding engine, role: Core capability, level: 1, visibility: internal}
+    - {name: Provider adapters (BYOK), role: Capability, level: 1, visibility: internal}
+  naming_rules:
+    - {term: AI Reading Companion, rule: "Always title case, never abbreviated to ARC in user-facing copy."}
+    - {term: "working name", rule: "The product name is provisional; the client may rename before launch."}
+  trademark: No trademark claimed yet. Use no ™ or ® until registration.
+
+logo:
+  intro: >-
+    A rounded-square mark holding three text lines and an insight dot: a page
+    that becomes understanding. Friendly geometry, no gradients, no effects.
+  variants:
+    - {name: Primary, file: public/brand/svg/arc-lockup.svg, bg: light, use: default lockup}
+    - {name: Mark, file: public/brand/svg/arc-mark.svg, bg: light, use: app icon, favicon, avatars}
+    - {name: Mark on dark, file: public/brand/svg/arc-mark-inverse.svg, bg: dark, use: dark surfaces}
+    - {name: Mono, file: public/brand/svg/arc-mark-mono.svg, bg: light, use: single-colour print, stamps}
+  clearspace: {ratio: 0.5, unit_label: mark height, rule: Keep clear space equal to half the mark's height on every side.}
+  min_size: {lockup_px: 96, lockup_mm: 24, mark_px: 24, mark_mm: 8}
+  placement:
+    - Top-left of the app shell, aligned to the content grid.
+    - Centred on empty states and the sign-in screen.
+  misuse:
+    - {effect: stretch, text: Never stretch or squash the mark.}
+    - {effect: rotate, text: Never rotate the mark.}
+    - {effect: recolor, text: Never recolour outside the approved palette.}
+    - {effect: shadow, text: Never add shadows, glows or strokes.}
+    - {effect: busy, text: Never place the mark on a busy photo without a scrim.}
+    - {effect: crop, text: Never crop or mask the mark.}
+  files: [{name: Vector masters, formats: [svg], path: public/brand/svg/}]
+
+color:
+  groups:
+    - name: Neutrals
+      swatches:
+        - {name: Ink, token: --ink, hex: "#221B17", role: "Primary text"}
+        - {name: Ink soft, token: --ink-soft, hex: "#5A4B41", role: "Secondary text"}
+        - {name: Muted, token: --muted, hex: "#8C7A6B", role: "Tertiary text, labels"}
+        - {name: Line, token: --line, hex: "#E8DFD5", role: "Borders, dividers"}
+        - {name: Paper, token: --paper, hex: "#FDFAF6", role: "App background"}
+        - {name: Paper 2, token: --paper-2, hex: "#F6EEE5", role: "Recessed surfaces, inputs"}
+    - name: Primary — Ember
+      swatches:
+        - {name: Ember 500, token: --ember-500, hex: "#E4573D", role: "Accents, illustration"}
+        - {name: Ember 600, token: --ember-600, hex: "#C63C24", role: "Primary action, links"}
+        - {name: Ember 700, token: --ember-700, hex: "#A32F1B", role: "Primary action hover/active"}
+    - name: Accents
+      swatches:
+        - {name: Sun, token: --sun, hex: "#F2B33D", role: "Highlight, progress"}
+        - {name: Sea, token: --sea, hex: "#2E9E8F", role: "Success, understood"}
+        - {name: Iris, token: --iris, hex: "#6C5CE0", role: "Provider/BYOK, secondary actions"}
+    - name: Semantic
+      swatches:
+        - {name: Success, token: --success, hex: "#2E7D5B", role: "Confirmation"}
+        - {name: Warning, token: --warning, hex: "#8A5A00", role: "Caution, quota"}
+        - {name: Danger, token: --danger, hex: "#B3261E", role: "Errors, destructive"}
+  proportion:
+    - {name: Paper, hex: "#FDFAF6", pct: 62}
+    - {name: Ink, hex: "#221B17", pct: 22}
+    - {name: Ember, hex: "#C63C24", pct: 10}
+    - {name: Accents, hex: "#F2B33D", pct: 6}
+  contrast:
+    - {fg: "#221B17", bg: "#FDFAF6", label: "Ink on Paper — body text"}
+    - {fg: "#5A4B41", bg: "#FDFAF6", label: "Ink soft on Paper — secondary text"}
+    - {fg: "#8C7A6B", bg: "#FDFAF6", label: "Muted on Paper — labels (large only)"}
+    - {fg: "#FFFFFF", bg: "#C63C24", label: "White on Ember 600 — primary button"}
+    - {fg: "#C63C24", bg: "#FDFAF6", label: "Ember 600 on Paper — links (large only)"}
+    - {fg: "#221B17", bg: "#F2B33D", label: "Ink on Sun — highlight chip"}
+  notes:
+    - Warm neutrals only. Never pure black (#000) or pure white (#FFF) for text surfaces.
+    - "Measured (WCAG 2.1): Ink/Paper 16.31:1 (AAA) · Ink soft/Paper 8.02:1 (AAA) · Ink/Sun 9.13:1 (AAA) · White/Ember 600 5.16:1 (AA) · Ember 600/Paper 4.95:1 (AA) · Iris/Paper 4.75:1 (AA)."
+    - Sea (3.15:1) and Muted (3.95:1) pass for LARGE text only — never use them for body copy or small labels.
+    - Every interactive state must clear 3:1 against its background (non-text UI).
+
+typography:
+  faces:
+    - {role: Display, family: Fraunces, css: "'Fraunces', Georgia, serif", weights: "400,600,700", use: "Screen titles, section headings, empty-state headlines", licence: "SIL Open Font License", fallback: "Georgia, serif"}
+    - {role: Interface, family: Inter, css: "'Inter', system-ui, sans-serif", weights: "400,500,600", use: "Body copy, UI, forms, labels", licence: "SIL Open Font License", fallback: "system-ui, sans-serif"}
+    - {role: Source text, family: Inter, css: "'Inter', system-ui, sans-serif", weights: "400", use: "The passage being read — larger size, generous line height", licence: "SIL Open Font License", fallback: "system-ui, sans-serif"}
+  scale:
+    - {name: Display, px: 32, lh: 1.15, weight: 700, face: Fraunces, sample: "Understand what you read"}
+    - {name: H1, px: 24, lh: 1.2, weight: 700, face: Fraunces, sample: "Your library"}
+    - {name: H2, px: 18, lh: 1.3, weight: 600, face: Fraunces, sample: "Understanding"}
+    - {name: Reading, px: 18, lh: 1.7, weight: 400, face: Inter, sample: "The passage you are reading"}
+    - {name: Body, px: 16, lh: 1.6, weight: 400, face: Inter, sample: "Supporting copy and descriptions"}
+    - {name: Small, px: 14, lh: 1.5, weight: 400, face: Inter, sample: "Secondary and helper text"}
+    - {name: Label, px: 12, lh: 1.4, weight: 500, face: Inter, sample: "FIELD LABELS AND CHIPS"}
+  rules:
+    - Reading text is never below 18px, and line length stays between 45 and 75 characters.
+    - Never use Fraunces below 18px — it is a display face.
+    - Sentence case everywhere. No ALL CAPS except the Label role.
+
+imagery:
+  principle: Warm, human, uncluttered. Illustrate understanding, never language barriers.
+  do:
+    - Use the rounded-square motif and the accent palette for illustration.
+    - Show real books, pages and reading moments.
+    - Keep one focal idea per image.
+  dont:
+    - No stock "handshake" or "global network" clichés.
+    - No flags to represent languages — languages are not countries.
+    - No text baked into images.
+  images: []
+
+layout:
+  grid: 4-column mobile (16px gutters) → 12-column desktop; reading column capped at 680px.
+  spacing:
+    - {token: --s-1, value: 4px}
+    - {token: --s-2, value: 8px}
+    - {token: --s-3, value: 12px}
+    - {token: --s-4, value: 16px}
+    - {token: --s-5, value: 24px}
+    - {token: --s-6, value: 32px}
+    - {token: --s-7, value: 48px}
+    - {token: --s-8, value: 64px}
+  radius:
+    - {role: Input and chip, value: 10px}
+    - {role: Card and surface, value: 16px}
+    - {role: Sheet and modal, value: 24px}
+    - {role: Pill, value: 999px}
+  elements:
+    - {name: Rounded square, text: The mark's rounded square recurs as the card, chip and avatar shape.}
+    - {name: Insight dot, text: A single accent dot marks the "key idea" in every result.}
+  motion: Subtle and springy — 150–250ms ease-out on enter, 120ms on exit. Respect prefers-reduced-motion.
+
+voice:
+  attributes:
+    - {name: Friendly, is: "Warm and plain — 'Nice. Here's what that passage means.'", is_not: "Chummy or over-familiar"}
+    - {name: Encouraging, is: "Assumes the reader is capable and doing something hard", is_not: "Congratulating people for basic actions"}
+    - {name: Precise, is: "Names what changed and why", is_not: "Vague reassurances"}
+    - {name: Unpretentious, is: "Everyday words for grammar concepts", is_not: "Linguistics jargon without a gloss"}
+  messaging:
+    tagline: Read anything. Understand everything.
+    value_props:
+      - Keeps the meaning, tone and nuance the original actually carries.
+      - Explains the grammar and structure, not just the words.
+      - Handles idioms, puns and cultural references other tools drop.
+      - Tuned for hard pairs — Japanese, Arabic — not just European languages.
+    boilerplate: >-
+      AI Reading Companion helps you read and understand written content in any
+      language — keeping the meaning and nuance of the original, and explaining
+      what a flat translation would lose.
+  banned:
+    - {term: simply, why: Condescending — if it were simple the reader would not need us.}
+    - {term: "just", why: Same reason; also hides real complexity.}
+    - {term: accurate translation, why: We do not claim accuracy we cannot prove; say meaning-preserving.}
+    - {term: "AI-powered", why: Says nothing the reader cares about. Describe the outcome instead.}
+  editorial:
+    - Sentence case for headings, buttons and labels.
+    - Second person ("you"), never "the user".
+    - No exclamation marks in error states.
+
+applications:
+  items:
+    - {name: Reader screen (mobile), kind: image, note: Passage plus understanding panel}
+    - {name: Social tile, kind: social_tile, note: 1080×1080 launch tile}
+
+appendix:
+  assets: []
+  pending:
+    - {item: "Product name is provisional — final name to be chosen and this guide updated throughout", owner: Client}
+    - {item: "Vector logo masters not yet drawn (mark concept specified only)", owner: Design}
+    - {item: "Licensed imagery set not selected", owner: Design}
+    - {item: "Print colour values (CMYK/PMS) not derived — digital-first for MVP", owner: Design}
+    - {item: "Contrast ratios to be re-verified against final tokens at build time", owner: Engineering}
+  version_history:
+    - {version: "1.0", date: 2026-09-29, change: "Initial authored identity for the MVP (greenfield — authored, not harvested)."}
+  approvals:
+    - {role: Owner, name: Craig, date: 2026-09-29}
+    - {role: Client, name: Adel Necib, date: ""}

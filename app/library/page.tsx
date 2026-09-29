@@ -9,11 +9,14 @@ export default async function LibraryPage() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-center space-y-3">
-          <h1 className="text-2xl font-bold">AI Reading Companion</h1>
-          <p>Sign in to access your library.</p>
-          <Link href="/login" className="inline-block rounded bg-neutral-900 text-white px-4 py-2">
+      <main className="mx-auto w-full max-w-3xl px-4 py-14">
+        <div className="rounded-card border border-line bg-paper-2/50 p-8 text-center">
+          <h1 className="font-display text-2xl font-semibold">Your library</h1>
+          <p className="mt-2 text-sm text-ink-soft">Sign in to start reading.</p>
+          <Link
+            href="/login"
+            className="mt-6 inline-block rounded-pill bg-ember px-6 py-3 font-medium text-white hover:bg-ember-700"
+          >
             Sign in
           </Link>
         </div>
@@ -27,37 +30,65 @@ export default async function LibraryPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="max-w-2xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Library</h1>
-        <span className="text-sm text-neutral-500">{data.user.email}</span>
+    <main className="mx-auto w-full max-w-3xl px-4 py-8">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="font-display text-2xl font-semibold">Library</h1>
+        <span className="text-xs text-muted">{data.user.email}</span>
       </div>
 
-      <form action={createContentItem} className="space-y-3 rounded border border-neutral-200 p-4">
-        <h2 className="font-semibold">Add content</h2>
-        <div className="flex gap-3">
-          <select name="kind" className="rounded border border-neutral-300 px-3 py-2">
-            {KINDS.map((k) => (
-              <option key={k} value={k}>{k}</option>
-            ))}
-          </select>
-          <input name="title" placeholder="Title (optional)" className="flex-1 rounded border border-neutral-300 px-3 py-2" />
+      <form action={createContentItem} className="mt-6 rounded-card border border-line bg-paper-2/50 p-4">
+        <h2 className="font-display text-sm font-semibold">Add content</h2>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,11rem)_1fr]">
+          <label className="block text-xs font-medium text-ink-soft">
+            Kind
+            <select name="kind" className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-3 text-[15px] text-ink">
+              {KINDS.map((k) => (
+                <option key={k} value={k}>{k}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-xs font-medium text-ink-soft">
+            Title
+            <input
+              name="title"
+              placeholder="Optional"
+              className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-3 text-[15px] text-ink"
+            />
+          </label>
         </div>
-        <input name="source" placeholder="Source / author (optional)" className="w-full rounded border border-neutral-300 px-3 py-2" />
-        <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">
+        <input
+          name="source"
+          placeholder="Source or author (optional)"
+          className="mt-3 w-full rounded-input border border-line bg-paper px-3 py-3 text-[15px] text-ink"
+        />
+        <button
+          type="submit"
+          className="mt-3 w-full rounded-pill bg-ember px-6 py-3 font-medium text-white hover:bg-ember-700 sm:w-auto"
+        >
           Add content
         </button>
       </form>
 
-      <ul className="space-y-2">
-        {items?.length === 0 && <li className="text-neutral-500">No content yet.</li>}
+      <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {items?.length === 0 && (
+          <li className="rounded-card border border-dashed border-line p-8 text-center text-sm text-muted sm:col-span-2">
+            Nothing here yet — add your first passage above.
+          </li>
+        )}
         {items?.map((i) => (
-          <li key={i.id} className="rounded border border-neutral-200 p-3">
-            <Link href={"/library/" + i.id} className="font-medium hover:underline">
-              {i.title || i.kind}
+          <li key={i.id}>
+            <Link
+              href={"/library/" + i.id}
+              className="flex h-full flex-col justify-between rounded-card border border-line bg-paper-2/40 p-4 transition-colors hover:bg-paper-2"
+            >
+              <span className="font-display text-[15px] font-semibold leading-snug">
+                {i.title || i.kind}
+              </span>
+              <span className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted">
+                <span className="rounded-pill border border-line bg-paper px-2 py-0.5">{i.kind}</span>
+                {i.source && <span className="truncate">{i.source}</span>}
+              </span>
             </Link>
-            <span className="ml-2 text-xs text-neutral-500">{i.kind}</span>
-            {i.source && <span className="block text-sm text-neutral-500">{i.source}</span>}
           </li>
         ))}
       </ul>
