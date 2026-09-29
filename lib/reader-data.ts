@@ -28,14 +28,13 @@ function toResult(row: ResultRow): Result {
 }
 
 /**
- * Everything the reader needs for one section: the highlights to draw, and the
- * most recent thing understood about it — whether that was the whole text or the
- * last few words the reader selected.
+ * Everything the reader needs for one section: the highlights to draw in the
+ * text, and the note that belongs in the margin beside the whole thing.
  */
 export async function loadReaderData(
   supabase: Client,
   contentItemId: string
-): Promise<{ latest: Result | null; selections: SelectionRow[] }> {
+): Promise<{ pageNote: Result | null; selections: SelectionRow[] }> {
   const { data: et } = await supabase
     .from("extracted_text")
     .select("id")
@@ -44,13 +43,13 @@ export async function loadReaderData(
 
   const { data: sels } = await supabase
     .from("selection")
-    .select("id, start_offset, end_offset, quote")
+    .select("id, start_offset, end_offset, quote, created_at")
     .eq("content_item_id", contentItemId)
     .order("start_offset", { ascending: true });
 
   const ids = (sels ?? []).map((s) => s.id);
 
-  const [selRes, secRes] = await Promise.all([
+  const [selRes, pageRes] = await Promise.all([
     ids.length
       ? supabase
           .from("ai_result")
@@ -63,35 +62,32 @@ export async function loadReaderData(
           .from("ai_result")
           .select("id, mode, original, understanding, terms, key_idea, explanation, created_at")
           .eq("extracted_text_id", et.id)
+          .eq("mode", "page")
           .order("created_at", { ascending: false })
           .limit(1)
       : Promise.resolve({ data: [] as ResultRow[] }),
   ]);
 
   const selRows = (selRes.data ?? []) as ResultRow[];
-  const secRow = ((secRes.data ?? []) as ResultRow[])[0] ?? null;
+  const pageRow = ((pageRes.data ?? []) as ResultRow[])[0] ?? null;
 
-  const newestPerSelection = new Map<string, Result>();
+  const newestPerSelection = new Map<string, ResultRow>();
   for (const row of selRows) {
     const key = row.selection_id || "";
-    if (key && !newestPerSelection.has(key)) newestPerSelection.set(key, toResult(row));
+    if (key && !newestPerSelection.has(key)) newestPerSelection.set(key, row);
   }
 
-  const selections: SelectionRow[] = (sels ?? []).map((s) => ({
-    id: s.id,
-    start: s.start_offset,
-    end: s.end_offset,
-    quote: s.quote,
-    result: newestPerSelection.get(s.id) ?? null,
-  }));
+  const selections: SelectionRow[] = (sels ?? []).map((s) => {
+    const row = newestPerSelection.get(s.id) ?? null;
+    return {
+      id: s.id,
+      start: s.start_offset,
+      end: s.end_offset,
+      quote: s.quote,
+      createdAt: row?.created_at ?? s.created_at,
+      result: row ? toResult(row) : null,
+    };
+  });
 
-  let latest: Result | null = secRow ? toResult(secRow) : null;
-  const newestSelection = selRows[0];
-  if (newestSelection) {
-    const a = new Date(newestSelection.created_at).getTime();
-    const b = secRow ? new Date(secRow.created_at).getTime() : -1;
-    if (a >= b) latest = toResult(newestSelection);
-  }
-
-  return { latest, selections };
+  return { pageNote: pageRow ? toResult(pageRow) : null, selections };
 }

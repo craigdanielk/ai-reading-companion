@@ -1,13 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import {
-  updateBook,
-  deleteBook,
-  updateBodyText,
-  setContentProfile,
-  saveResultToNotes,
-} from "@/app/actions";
+import { updateBook, deleteBook, updateBodyText, setContentProfile } from "@/app/actions";
 import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { Compose } from "@/components/Compose";
@@ -53,7 +47,7 @@ export default async function BookPage({
       : Promise.resolve({ data: null }),
     current
       ? loadReaderData(supabase, current.id)
-      : Promise.resolve({ latest: null, selections: [] }),
+      : Promise.resolve({ pageNote: null, selections: [] }),
   ]);
 
   const multi = list.length > 1;
@@ -203,14 +197,13 @@ export default async function BookPage({
             contentItemId={current.id}
             title={readerTitle}
             bodyText={current.body_text || ""}
-            latest={reader.latest}
+            pageNote={reader.pageNote}
             selections={reader.selections}
             canRun={Boolean(current.body_text)}
             sourceLanguage={profile?.source_language || "auto"}
             targetLanguage={profile?.target_language || "en"}
             domain={profile?.domain || "general"}
             depth={profile?.comprehension_depth || "intermediate"}
-            onSave={saveResultToNotes}
           />
         ) : (
           <div className="mx-auto w-full max-w-2xl px-5 py-8">

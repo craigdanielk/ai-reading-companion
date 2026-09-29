@@ -1,15 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { createBook } from "@/app/actions";
 import { Compose } from "@/components/Compose";
+import { BookCover } from "@/components/BookCover";
+import { LangBadge } from "@/components/LangBadge";
 
 export const metadata = { title: "Library" };
-
-function hue(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) % 360;
-  return h;
-}
 
 export default async function LibraryPage() {
   const supabase = await createClient();
@@ -20,93 +15,92 @@ export default async function LibraryPage() {
     .from("book")
     .select("id, title, author, cover_url, created_at")
     .order("created_at", { ascending: false });
-  const { data: allPassages } = await supabase
-    .from("content_item")
-    .select("id, title, book_id, created_at")
-    .order("created_at", { ascending: false });
 
-  const counts = new Map<string, number>();
-  const unfiled = (allPassages ?? []).filter((p) => !p.book_id);
-  for (const p of allPassages ?? []) {
-    if (p.book_id) counts.set(p.book_id, (counts.get(p.book_id) ?? 0) + 1);
+  const { data: sections } = await supabase
+    .from("content_item")
+    .select("id, title, book_id, body_text, created_at")
+    .order("created_at", { ascending: true });
+
+  const sectionIds = (sections ?? []).map((s) => s.id);
+  const { data: profiles } = sectionIds.length
+    ? await supabase
+        .from("content_profile")
+        .select("content_item_id, source_language, target_language")
+        .in("content_item_id", sectionIds)
+    : { data: [] as { content_item_id: string; source_language: string; target_language: string }[] };
+
+  const profileOf = new Map((profiles ?? []).map((p) => [p.content_item_id, p]));
+  // A book's language pair comes from the first text inside it.
+  const bookLangs = new Map<string, { source: string; target: string }>();
+  for (const s of sections ?? []) {
+    if (!s.book_id || bookLangs.has(s.book_id)) continue;
+    const p = profileOf.get(s.id);
+    if (p) bookLangs.set(s.book_id, { source: p.source_language, target: p.target_language });
   }
 
-  return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="font-display text-2xl font-semibold">Library</h1>
+  const orphans = (sections ?? []).filter((s) => !s.book_id);
 
-      <div className="mt-5">
+  return (
+    <main className="mx-auto w-full max-w-4xl px-5 py-10 lg:py-14">
+      <h1 className="font-display text-[28px] font-semibold leading-tight lg:text-[32px]">Library</h1>
+
+      <div className="mt-6">
         <Compose />
       </div>
 
-      <details className="mt-3">
-        <summary className="cursor-pointer text-xs text-muted hover:text-ink">
-          Start an empty book instead
-        </summary>
-        <form action={createBook} className="mt-3 flex flex-wrap items-center gap-2 rounded-card border border-dashed border-line p-3">
-          <input
-            name="title"
-            placeholder="Book title"
-            className="min-w-0 flex-1 rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink"
-          />
-          <input
-            name="author"
-            placeholder="Author (optional)"
-            className="min-w-0 flex-1 rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink"
-          />
-          <button type="submit" className="rounded-pill border border-line bg-paper px-4 py-2.5 text-sm font-medium hover:bg-paper-2">
-            Add book
-          </button>
-        </form>
-      </details>
-
       {(books?.length ?? 0) > 0 && (
-        <ul className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4">
-          {books!.map((b) => (
-            <li key={b.id}>
-              <Link href={"/book/" + b.id} className="group block">
-                <div
-                  className="flex aspect-[2/3] items-center justify-center rounded-card border border-line shadow-sm transition-transform group-hover:-translate-y-0.5"
-                  style={{ background: "hsl(" + hue(b.title) + " 42% 86%)" }}
-                >
-                  {b.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={b.cover_url} alt="" className="h-full w-full rounded-card object-cover" />
-                  ) : (
-                    <span className="font-display text-2xl font-semibold text-ink/50">
-                      {b.title.slice(0, 1).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 truncate font-display text-[13px] font-semibold">{b.title}</p>
-                <p className="truncate text-[11px] text-muted">
-                  {counts.get(b.id) ?? 0} passage{(counts.get(b.id) ?? 0) === 1 ? "" : "s"}
-                </p>
-              </Link>
-            </li>
-          ))}
+        <ul className="mt-12 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-8">
+          {books!.map((b) => {
+            const langs = bookLangs.get(b.id);
+            return (
+              <li key={b.id}>
+                <Link href={"/book/" + b.id} className="group block">
+                  <BookCover
+                    title={b.title}
+                    author={b.author}
+                    coverUrl={b.cover_url}
+                    className="transition-transform duration-200 ease-out group-hover:-translate-y-1"
+                  />
+                  <p className="mt-3 truncate font-display text-[15px] font-semibold text-ink">{b.title}</p>
+                  <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11.5px] text-muted">
+                    {b.author ? (
+                      <span className="truncate">{b.author}</span>
+                    ) : langs ? (
+                      <>
+                        <LangBadge code={langs.source} size="sm" />
+                        <span>&rarr;</span>
+                        <LangBadge code={langs.target} size="sm" />
+                      </>
+                    ) : (
+                      <span>Empty</span>
+                    )}
+                  </p>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
 
-      {unfiled.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-[11px] font-medium tracking-wider text-muted">LOOSE TEXTS</h2>
-          <ul className="mt-3 divide-y divide-line rounded-card border border-line">
-            {unfiled.map((p) => (
+      {(books?.length ?? 0) === 0 && orphans.length === 0 && (
+        <p className="mt-14 text-center text-[14px] text-muted">
+          Paste something you want to understand. It becomes the first book on your shelf.
+        </p>
+      )}
+
+      {orphans.length > 0 && (
+        <section className="mt-14">
+          <h2 className="text-[12px] text-muted">Unfiled</h2>
+          <ul className="mt-3 divide-y divide-line border-t border-line">
+            {orphans.map((p) => (
               <li key={p.id}>
-                <Link href={"/passage/" + p.id} className="block px-4 py-3 transition-colors hover:bg-paper-2/60">
-                  <p className="truncate font-display text-[14px] font-medium">{p.title || "Passage"}</p>
+                <Link href={"/passage/" + p.id} className="block py-3 transition-colors hover:text-ink">
+                  <span className="truncate text-[14px] text-ink-soft">{p.title || "Untitled"}</span>
                 </Link>
               </li>
             ))}
           </ul>
         </section>
-      )}
-
-      {(books?.length ?? 0) === 0 && unfiled.length === 0 && (
-        <p className="mt-10 rounded-card border border-dashed border-line p-8 text-center text-sm text-muted">
-          Paste a passage above to understand it, or add a book to collect passages from what you are reading.
-        </p>
       )}
     </main>
   );

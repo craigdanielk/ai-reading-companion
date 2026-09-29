@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateBodyText, setContentProfile, saveResultToNotes } from "@/app/actions";
+import { updateBodyText, setContentProfile } from "@/app/actions";
 import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { LangPicker } from "@/components/LangPicker";
@@ -112,14 +112,13 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
           contentItemId={item.id}
           title={item.title || "Reading"}
           bodyText={item.body_text || ""}
-          latest={reader.latest}
+          pageNote={reader.pageNote}
           selections={reader.selections}
           canRun={Boolean(item.body_text)}
           sourceLanguage={profile?.source_language || "auto"}
           targetLanguage={profile?.target_language || "en"}
           domain={profile?.domain || "general"}
           depth={profile?.comprehension_depth || "intermediate"}
-          onSave={saveResultToNotes}
         />
       </div>
     </div>

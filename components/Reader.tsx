@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseSections, parsePageSections } from "@/lib/providers/parse";
 import { snapRange } from "@/lib/text/range";
+import { findLanguage } from "@/lib/nuance/registry";
 import { LangBadge } from "@/components/LangBadge";
 
 export interface Result {
@@ -21,6 +22,7 @@ export interface SelectionRow {
   start: number;
   end: number;
   quote: string;
+  createdAt: string;
   result: Result | null;
 }
 
@@ -47,15 +49,16 @@ function splitBlocks(text: string): Block[] {
   const sep = /\n\s*\n/.test(text) ? /\n\s*\n/ : /\n/;
   const out: Block[] = [];
   for (const part of text.split(sep)) {
-    const idx = text.indexOf(part, out.length ? out[out.length - 1].end : 0);
-    const start = idx === -1 ? (out.length ? out[out.length - 1].end : 0) : idx;
+    const cursor = out.length ? out[out.length - 1].end : 0;
+    const idx = text.indexOf(part, cursor);
+    const start = idx === -1 ? cursor : idx;
     const end = start + part.length;
     if (part.trim()) out.push({ text: part, start, end });
   }
   return out;
 }
 
-function segmentsFor(block: Block, ranges: { start: number; end: number }[]) {
+function segmentsFor(block: Block, ranges: Range[]) {
   const bounds = ranges
     .map((r) => [Math.max(r.start, block.start) - block.start, Math.min(r.end, block.end) - block.start])
     .filter((b) => b[1] > b[0])
@@ -98,26 +101,24 @@ export function Reader({
   contentItemId,
   title,
   bodyText,
-  latest,
+  pageNote,
   selections,
   canRun,
   sourceLanguage,
   targetLanguage,
   domain,
   depth,
-  onSave,
 }: {
   contentItemId: string;
   title: string;
   bodyText: string;
-  latest: Result | null;
+  pageNote: Result | null;
   selections: SelectionRow[];
   canRun: boolean;
   sourceLanguage: string;
   targetLanguage: string;
   domain: string;
   depth: string;
-  onSave: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
   const textRef = useRef<HTMLDivElement | null>(null);
@@ -130,11 +131,9 @@ export function Reader({
   const [activeMode, setActiveMode] = useState<"passage" | "page">("passage");
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
-  const [pending, setPending] = useState<{ start: number; end: number } | null>(null);
+  const [pending, setPending] = useState<Range | null>(null);
   const [popover, setPopover] = useState<{ start: number; end: number; top: number; left: number } | null>(null);
 
-  // Painted from the server's selections plus anything understood in this
-  // session, so a paragraph lights up the moment it answers.
   const [fresh, setFresh] = useState<Range[]>(() => sessionHighlights.get(contentItemId) ?? []);
   const ranges = useMemo(
     () => [...selections.map((s) => ({ start: s.start, end: s.end })), ...fresh],
@@ -169,12 +168,30 @@ export function Reader({
         })()
     : null;
 
-  const shown = live ?? latest;
+  // Newest gloss wins the paragraph it belongs to.
+  const glossByBlock = useMemo(() => {
+    const map = new Map<number, Result>();
+    const ordered = [...selections].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    for (const s of ordered) {
+      if (!s.result) continue;
+      const idx = blocks.findIndex((b) => s.end > b.start && s.start < b.end);
+      if (idx >= 0 && !map.has(idx)) map.set(idx, s.result);
+    }
+    return map;
+  }, [selections, blocks]);
 
-  // Asking again supersedes whatever is in flight — the reader's last request is
-  // the one they meant. A sequence token keeps the abandoned run from writing
-  // over the new one's state when it unwinds.
-  async function run(selection: { start: number; end: number } | null, mode: "passage" | "page") {
+  const pendingBlock = useMemo(() => {
+    if (!pending) return -1;
+    return blocks.findIndex((b) => pending.end > b.start && pending.start < b.end);
+  }, [pending, blocks]);
+
+  const wholeText = live?.mode === "page" ? live : pageNote;
+  const targetName = findLanguage(targetLanguage)?.name || targetLanguage;
+  const hasAny = Boolean(wholeText) || glossByBlock.size > 0 || Boolean(live && live.mode === "passage");
+
+  async function run(selection: Range | null, mode: "passage" | "page") {
     if (!canRun) return;
     const seq = ++runSeq.current;
     abort.current?.abort();
@@ -230,7 +247,7 @@ export function Reader({
   }
 
   function stop() {
-    runSeq.current++; // a stopped run must not write state when it unwinds
+    runSeq.current++;
     abort.current?.abort();
     abort.current = null;
     setRunning(false);
@@ -280,220 +297,180 @@ export function Reader({
 
   // A one-paragraph text is the quick-translate case: understand it on arrival.
   useEffect(() => {
-    if (autoFired.current || !canRun || latest || blocks.length !== 1) return;
+    if (autoFired.current || !canRun || pageNote || blocks.length !== 1) return;
     autoFired.current = true;
     void run({ start: blocks[0].start, end: blocks[0].end }, "passage");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canRun, latest, blocks]);
+  }, [canRun, pageNote, blocks]);
 
   return (
-    <div className="flex min-h-full flex-col lg:h-full lg:min-h-0 lg:flex-row">
-      <div className="px-5 py-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl">
-          <header className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="font-display text-2xl font-semibold leading-tight">{title}</h1>
-              <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-                <LangBadge code={sourceLanguage} size="sm" />
-                <span>{sourceLanguage === "auto" ? "detected" : sourceLanguage}</span>
-                <span>&rarr;</span>
-                <LangBadge code={targetLanguage} size="sm" />
-                <span>{targetLanguage}</span>
-                {domain !== "general" && <span>&middot; {domain}</span>}
-                <span>&middot; {depth}</span>
-              </p>
-            </div>
-            <button
-              onClick={() => void run(null, "page")}
-              disabled={!canRun || running}
-              className="shrink-0 rounded-pill border border-line bg-paper px-3.5 py-2 text-xs font-medium transition-colors hover:bg-paper-2 disabled:opacity-40"
-            >
-              Understand the whole text
-            </button>
-          </header>
-
-          <p className="mt-4 text-xs text-muted">
-            Tap a paragraph to understand it. Drag to select just part of one.
-          </p>
-
-          <div
-            ref={textRef}
-            onClick={onTextClick}
-            onMouseUp={onTextSelection}
-            onTouchEnd={() => window.setTimeout(onTextSelection, 120)}
-            className="prose-measure mt-5 space-y-4 text-[18px] leading-[1.75] text-ink"
-          >
-            {blocks.length === 0 && (
-              <p className="rounded-card border border-dashed border-line p-6 text-sm text-muted">
-                No text yet.
-              </p>
-            )}
-            {blocks.map((b, i) => {
-              const segs = segmentsFor(b, ranges);
-              const isPending =
-                pending && pending.start === b.start && pending.end === b.end && running;
-              return (
-                <p
-                  key={i}
-                  data-start={b.start}
-                  data-end={b.end}
-                  className={
-                    "cursor-pointer whitespace-pre-wrap rounded-input px-2 py-1 -mx-2 transition-colors " +
-                    (isPending ? "bg-paper-2/70" : "hover:bg-paper-2/50")
-                  }
-                >
-                  {segs.map((s, j) =>
-                    s.hl ? (
-                      <mark key={j} className="rounded-[3px] bg-sun/35 text-ink">
-                        {s.text}
-                      </mark>
-                    ) : (
-                      <span key={j}>{s.text}</span>
-                    )
-                  )}
-                </p>
-              );
-            })}
-          </div>
+    <div className="mx-auto w-full max-w-[42rem] px-5 py-10 lg:max-w-[64rem] lg:px-10 lg:py-16">
+      <header className="lg:max-w-[42rem]">
+        <h1 className="font-display text-[28px] font-semibold leading-[1.2] text-ink lg:text-[32px]">
+          {title}
+        </h1>
+        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-muted">
+          <LangBadge code={sourceLanguage} size="sm" />
+          <span>{sourceLanguage === "auto" ? "detected" : findLanguage(sourceLanguage)?.name}</span>
+          <span className="text-line">&rarr;</span>
+          <LangBadge code={targetLanguage} size="sm" />
+          <span>{targetName}</span>
+          {domain !== "general" && <span>&middot; {domain}</span>}
         </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <button
+            onClick={() => void run(null, "page")}
+            disabled={!canRun}
+            className="text-[12px] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
+          >
+            Understand the whole text
+          </button>
+          {running && (
+            <button onClick={stop} className="text-[12px] text-muted transition-colors hover:text-ink">
+              Stop
+            </button>
+          )}
+        </div>
+      </header>
+
+      {(wholeText || (live?.mode === "page" && running)) && (
+        <section className="gloss-in mt-6 lg:max-w-[42rem]">
+          <div className="rounded-[4px] border-l-2 border-sun bg-paper-2/40 py-3 pl-4 pr-3">
+            {live?.mode === "page" && running && !live.understanding ? (
+              <Skeleton />
+            ) : (
+              <GlossBody r={wholeText!} hard />
+            )}
+          </div>
+        </section>
+      )}
+
+      {!hasAny && !running && canRun && (
+        <p className="mt-6 text-[13px] text-muted lg:max-w-[42rem]">
+          Tap a paragraph to read it in {targetName}. Drag across a few words to read only those.
+        </p>
+      )}
+
+      {error && (
+        <p className="mt-6 rounded-[4px] border-l-2 border-danger bg-danger/5 py-2 pl-4 pr-3 text-[13px] text-danger lg:max-w-[42rem]">
+          {error}
+        </p>
+      )}
+
+      <div
+        ref={textRef}
+        onClick={onTextClick}
+        onMouseUp={onTextSelection}
+        onTouchEnd={() => window.setTimeout(onTextSelection, 120)}
+        className="mt-8 space-y-5 text-[18px] leading-[1.75] text-ink lg:space-y-0"
+      >
+        {blocks.length === 0 && (
+          <p className="text-[14px] text-muted">This text is empty.</p>
+        )}
+        {blocks.map((b, i) => {
+          const segs = segmentsFor(b, ranges);
+          const gloss = i === pendingBlock && activeMode === "passage" ? live : glossByBlock.get(i) || null;
+          const isPending = i === pendingBlock && running;
+          return (
+            <div
+              key={i}
+              className="lg:grid lg:grid-cols-[minmax(0,42rem)_19rem] lg:items-start lg:gap-x-[3.5rem] lg:py-2"
+            >
+              <p
+                data-start={b.start}
+                data-end={b.end}
+                className={
+                  "cursor-pointer whitespace-pre-wrap rounded-[4px] px-2 py-1 -mx-2 transition-colors lg:mx-0 lg:px-0 " +
+                  (isPending ? "bg-paper-2/60 lg:bg-transparent" : "lg:hover:bg-paper-2/40")
+                }
+              >
+                {segs.map((s, j) =>
+                  s.hl ? (
+                    <mark key={j} className="rounded-[2px] bg-sun/30 text-ink">
+                      {s.text}
+                    </mark>
+                  ) : (
+                    <span key={j}>{s.text}</span>
+                  )
+                )}
+              </p>
+
+              {(gloss || isPending) && (
+                <aside className="gloss-in mt-2 border-l border-line pl-4 lg:mt-0 lg:border-l-0 lg:pl-0 lg:pt-[3px]">
+                  {isPending && !gloss?.understanding ? <Skeleton /> : gloss ? <GlossBody r={gloss} /> : null}
+                </aside>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {popover && (
         <button
           style={{ top: popover.top, left: popover.left }}
-          className="fixed z-40 -translate-x-1/2 rounded-pill bg-ink px-3.5 py-2 text-xs font-medium text-paper shadow-lg"
+          className="fixed z-40 -translate-x-1/2 rounded-pill bg-ink px-3.5 py-2 text-[12px] font-medium text-paper shadow-lg"
           onClick={() => void run({ start: popover.start, end: popover.end }, "passage")}
         >
           Understand this
         </button>
       )}
-
-      <section className="border-t border-line bg-paper lg:min-h-0 lg:w-[26rem] lg:shrink-0 lg:border-l lg:border-t-0">
-        <div className="flex h-full flex-col">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
-            <h2 className="flex items-center gap-2 font-display text-sm font-semibold">
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-sun" aria-hidden />
-              Understanding
-              {running && <span className="text-xs font-normal text-muted">streaming&hellip;</span>}
-            </h2>
-            <div className="flex items-center gap-2">
-              {latest?.id && !streamed && (
-                <form action={onSave}>
-                  <input type="hidden" name="content_item_id" value={contentItemId} />
-                  <input type="hidden" name="ai_result_id" value={latest.id} />
-                  <button
-                    type="submit"
-                    className="rounded-pill border border-line bg-paper px-3 py-1.5 text-xs transition-colors hover:bg-paper-2"
-                  >
-                    Save to notes
-                  </button>
-                </form>
-              )}
-              {running && (
-                <button
-                  onClick={stop}
-                  className="rounded-pill border border-line bg-paper px-3 py-1.5 text-xs hover:bg-paper-2"
-                >
-                  Stop
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="min-h-0 flex-1 px-4 py-4 lg:overflow-y-auto">
-            {error && (
-              <p className="rounded-input border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
-                {error}
-              </p>
-            )}
-
-            {!shown && !running && !error && (
-              <p className="text-sm text-muted">
-                {canRun
-                  ? "Tap a paragraph, or drag across a few words."
-                  : "Nothing to understand here yet."}
-              </p>
-            )}
-
-            {running && !shown?.understanding && (
-              <div className="space-y-3" aria-busy="true">
-                <div className="h-4 w-2/3 animate-pulse rounded bg-paper-2" />
-                <div className="h-4 w-full animate-pulse rounded bg-paper-2" />
-                <div className="h-4 w-5/6 animate-pulse rounded bg-paper-2" />
-              </div>
-            )}
-
-            {shown && <ResultBody r={shown} />}
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
 
-function ResultBody({ r }: { r: Result }) {
+function Skeleton() {
+  return (
+    <div className="space-y-2" aria-busy="true">
+      <div className="h-3 w-4/5 animate-pulse rounded bg-paper-2" />
+      <div className="h-3 w-full animate-pulse rounded bg-paper-2" />
+      <div className="h-3 w-2/3 animate-pulse rounded bg-paper-2" />
+    </div>
+  );
+}
+
+// A gloss, not a dashboard: the rendering in the reader's own type, the hard
+// words as a quiet line, and the reasoning folded away until asked for.
+function GlossBody({ r, hard }: { r: Result; hard?: boolean }) {
   if (r.mode === "page") {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         {r.understanding && (
-          <section>
-            <h3 className="text-[11px] font-medium tracking-wide text-muted">THE WHOLE TEXT</h3>
-            <p className="mt-1 font-display text-[17px] leading-[1.6] text-ink">{r.understanding}</p>
-          </section>
+          <p className="font-display text-[17px] leading-[1.6] text-ink">{r.understanding}</p>
         )}
         {r.terms && r.terms.length > 0 && (
-          <section>
-            <h3 className="text-[11px] font-medium tracking-wide text-muted">HARD PASSAGES</h3>
-            <ul className="mt-2 space-y-2">
-              {r.terms.map((t, i) => (
-                <li key={i} className="rounded-input border-l-4 border-sun bg-paper-2/50 px-3 py-2 text-[13px] leading-relaxed text-ink-soft">
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </section>
+          <ul className="space-y-1.5 border-t border-line pt-3">
+            {r.terms.map((t, i) => (
+              <li key={i} className="text-[13px] leading-relaxed text-ink-soft">
+                {t}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {r.original && (
-        <section>
-          <h3 className="text-[11px] font-medium tracking-wide text-muted">ORIGINAL</h3>
-          <p className="mt-1 whitespace-pre-wrap text-[14px] leading-relaxed text-ink-soft">{r.original}</p>
-        </section>
-      )}
+    <div className="space-y-2.5">
       {r.understanding && (
-        <section>
-          <h3 className="text-[11px] font-medium tracking-wide text-muted">YOUR UNDERSTANDING</h3>
-          <p className="mt-1 font-display text-[18px] leading-[1.6] text-ink">{r.understanding}</p>
-        </section>
+        <p className="font-display text-[16px] leading-[1.55] text-ink">{r.understanding}</p>
       )}
       {r.terms && r.terms.length > 0 && (
-        <section>
-          <h3 className="text-[11px] font-medium tracking-wide text-muted">IMPORTANT TERMS</h3>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {r.terms.map((t, i) => (
-              <li key={i} className="rounded-pill border border-line bg-paper px-3 py-1 text-[13px] text-ink-soft">
-                {t}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <ul className="space-y-0.5 border-t border-line pt-2.5 text-[12.5px] leading-snug text-ink-soft">
+          {r.terms.map((t, i) => (
+            <li key={i}>{t}</li>
+          ))}
+        </ul>
       )}
-      {r.keyIdea && (
-        <section className="rounded-card border-l-4 border-sun bg-paper-2/50 p-3">
-          <h3 className="text-[11px] font-medium tracking-wide text-muted">KEY IDEA</h3>
-          <p className="mt-1 text-[14px] text-ink">{r.keyIdea}</p>
-        </section>
-      )}
-      {r.explanation && (
-        <section>
-          <h3 className="text-[11px] font-medium tracking-wide text-muted">EXPLANATION</h3>
-          <p className="mt-1 whitespace-pre-wrap text-[14px] leading-relaxed text-ink-soft">{r.explanation}</p>
-        </section>
+      {!hard && r.explanation && (
+        <details className="group pt-0.5">
+          <summary className="cursor-pointer list-none text-[12px] text-muted transition-colors hover:text-ink-soft">
+            <span className="group-open:hidden">why</span>
+            <span className="hidden group-open:inline">hide</span>
+          </summary>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">{r.explanation}</p>
+        </details>
       )}
     </div>
   );
