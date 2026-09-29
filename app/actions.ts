@@ -45,14 +45,37 @@ export async function createContentItem(formData: FormData): Promise<void> {
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect("/login");
 
-  const { error } = await supabase.from("content_item").insert({
-    user_id: data.user.id,
-    kind: (formData.get("kind") as string) || "text",
-    title: (formData.get("title") as string) || null,
-    source: (formData.get("source") as string) || null,
+  const { data: item, error } = await supabase
+    .from("content_item")
+    .insert({
+      user_id: data.user.id,
+      kind: (formData.get("kind") as string) || "text",
+      title: (formData.get("title") as string) || null,
+      source: (formData.get("source") as string) || null,
+      body_text: (formData.get("body_text") as string) || null,
+    })
+    .select("id")
+    .single();
+  if (error || !item) {
+    console.error("createContentItem:", error?.message);
+    redirect("/library");
+  }
+
+  // seed the per-content comprehension profile from the reader's saved defaults
+  const { data: prefs } = await supabase
+    .from("user_preference")
+    .select("*")
+    .eq("user_id", data.user.id)
+    .maybeSingle();
+  await supabase.from("content_profile").insert({
+    content_item_id: item.id,
+    source_language: prefs?.default_source_language || "auto",
+    target_language: prefs?.default_target_language || "en",
+    domain: prefs?.default_domain || "general",
+    comprehension_depth: prefs?.default_depth || "intermediate",
   });
-  if (error) console.error("createContentItem:", error.message);
-  redirect("/library");
+
+  redirect("/library/" + item.id);
 }
 
 export async function setContentProfile(formData: FormData): Promise<void> {
@@ -239,6 +262,42 @@ export async function saveResultToNotes(formData: FormData): Promise<void> {
   });
   if (error) console.error("saveResultToNotes:", error.message);
   redirect("/library/" + content_item_id);
+}
+
+export async function savePreferences(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const { error } = await supabase.from("user_preference").upsert(
+    {
+      user_id: data.user.id,
+      default_source_language: (formData.get("source_language") as string) || "auto",
+      default_target_language: (formData.get("target_language") as string) || "en",
+      default_domain: (formData.get("domain") as string) || "general",
+      default_depth: (formData.get("depth") as string) || "intermediate",
+    },
+    { onConflict: "user_id" }
+  );
+  if (error) console.error("savePreferences:", error.message);
+  redirect("/settings/preferences");
+}
+
+export async function deleteProvider(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const id = formData.get("id") as string;
+  const { error } = await supabase.from("provider_connection").delete().eq("id", id);
+  if (error) console.error("deleteProvider:", error.message);
+  redirect("/settings/providers");
+}
+
+export async function signOut(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
 }
 
 export async function connectProvider(formData: FormData): Promise<void> {

@@ -7,10 +7,24 @@ import {
   understand,
   addNote,
   saveResultToNotes,
-  connectProvider,
   uploadImage,
   extractText,
 } from "@/app/actions";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("content_item")
+    .select("title, kind")
+    .eq("id", id)
+    .single();
+  return { title: item?.title || item?.kind || "Reading" };
+}
 
 export default async function ContentItemPage({
   params,
@@ -308,38 +322,7 @@ export default async function ContentItemPage({
           </ul>
         </details>
 
-        <details className="rounded-card border border-line p-4">
-          <summary className="cursor-pointer font-display text-sm font-semibold">
-            AI provider (bring your own)
-          </summary>
-          <p className="mt-3 text-xs text-muted">
-            Connect your own provider account — otherwise the platform default is used.
-          </p>
-          <form action={connectProvider} className="mt-3 space-y-3">
-            <input type="hidden" name="content_item_id" value={item.id} />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <label className="block text-xs font-medium text-ink-soft">
-                Provider
-                <select name="provider" className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink">
-                  <option value="openai">OpenAI</option>
-                  <option value="deepseek">DeepSeek</option>
-                  <option value="mistral">Mistral</option>
-                </select>
-              </label>
-              <label className="block text-xs font-medium text-ink-soft">
-                Model
-                <input name="model" placeholder="Optional" className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink" />
-              </label>
-              <label className="block text-xs font-medium text-ink-soft">
-                API key
-                <input name="api_key" type="password" placeholder="sk-…" className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink" />
-              </label>
-            </div>
-            <button type="submit" className="rounded-pill border border-line bg-paper px-5 py-2.5 font-medium hover:bg-paper-2">
-              Connect provider
-            </button>
-          </form>
-        </details>
+        
       </div>
     </main>
   );
