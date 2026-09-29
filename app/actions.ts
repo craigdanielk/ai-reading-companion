@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { deepseekProvider } from "@/lib/providers/deepseek";
+import { resolveProvider } from "@/lib/providers/resolve";
 
 export async function createContentItem(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -90,7 +90,6 @@ export async function understand(formData: FormData): Promise<void> {
   const target_language = profile?.target_language || "en";
   const comprehension_depth = profile?.comprehension_depth || "intermediate";
 
-  // ensure an extracted_text row exists (ai_result references it)
   let etId: string;
   const { data: existingEt } = await supabase
     .from("extracted_text")
@@ -114,7 +113,8 @@ export async function understand(formData: FormData): Promise<void> {
   }
 
   try {
-    const result = await deepseekProvider.comprehend({
+    const provider = await resolveProvider();
+    const result = await provider.comprehend({
       text,
       targetLanguage: target_language,
       comprehensionDepth: comprehension_depth as "beginner" | "intermediate" | "advanced",
@@ -130,6 +130,80 @@ export async function understand(formData: FormData): Promise<void> {
     if (error) console.error("understand insert:", error.message);
   } catch (e) {
     console.error("understand provider:", (e as Error).message);
+  }
+  redirect("/library/" + content_item_id);
+}
+
+export async function addNote(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const content_item_id = formData.get("content_item_id") as string;
+  const body = (formData.get("body") as string) || "";
+  if (!body.trim()) redirect("/library/" + content_item_id);
+
+  const { error } = await supabase.from("note").insert({
+    content_item_id,
+    body,
+    kind: "personal",
+  });
+  if (error) console.error("addNote:", error.message);
+  redirect("/library/" + content_item_id);
+}
+
+export async function saveResultToNotes(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const content_item_id = formData.get("content_item_id") as string;
+  const ai_result_id = formData.get("ai_result_id") as string;
+  const { data: result } = await supabase
+    .from("ai_result")
+    .select("understanding")
+    .eq("id", ai_result_id)
+    .single();
+
+  const { error } = await supabase.from("note").insert({
+    content_item_id,
+    source_ai_result_id: ai_result_id,
+    body: result?.understanding || "",
+    kind: "ai",
+  });
+  if (error) console.error("saveResultToNotes:", error.message);
+  redirect("/library/" + content_item_id);
+}
+
+export async function connectProvider(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const content_item_id = formData.get("content_item_id") as string;
+  const provider = formData.get("provider") as string;
+  const api_key = (formData.get("api_key") as string) || "";
+
+  if (api_key.trim()) {
+    const { data: existing } = await supabase
+      .from("provider_connection")
+      .select("id")
+      .eq("user_id", data.user.id)
+      .eq("provider", provider)
+      .maybeSingle();
+    if (existing) {
+      await supabase
+        .from("provider_connection")
+        .update({ credential_ref: api_key, is_default: true })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("provider_connection").insert({
+        user_id: data.user.id,
+        provider,
+        credential_ref: api_key,
+        is_default: true,
+      });
+    }
   }
   redirect("/library/" + content_item_id);
 }

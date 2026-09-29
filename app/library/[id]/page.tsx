@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { setContentProfile, updateBodyText, understand } from "@/app/actions";
+import {
+  setContentProfile,
+  updateBodyText,
+  understand,
+  addNote,
+  saveResultToNotes,
+  connectProvider,
+} from "@/app/actions";
 
 export default async function ContentItemPage({
   params,
@@ -43,6 +50,12 @@ export default async function ContentItemPage({
         .maybeSingle()
     : { data: null };
 
+  const { data: notes } = await supabase
+    .from("note")
+    .select("*")
+    .eq("content_item_id", id)
+    .order("created_at", { ascending: false });
+
   return (
     <main className="max-w-2xl mx-auto p-6 space-y-6">
       <Link href="/library" className="text-sm text-neutral-500 hover:underline">&larr; Library</Link>
@@ -71,7 +84,7 @@ export default async function ContentItemPage({
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
           </select>
-          <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Save profile</button>
+          <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Save</button>
         </div>
       </form>
 
@@ -96,7 +109,16 @@ export default async function ContentItemPage({
 
       {result && (
         <div className="rounded border border-neutral-200 p-4 space-y-3">
-          <h2 className="font-semibold">Understanding</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Understanding</h2>
+            <form action={saveResultToNotes}>
+              <input type="hidden" name="content_item_id" value={item.id} />
+              <input type="hidden" name="ai_result_id" value={result.id} />
+              <button type="submit" className="text-sm rounded border border-neutral-300 px-3 py-1 hover:bg-neutral-100">
+                Save to notes
+              </button>
+            </form>
+          </div>
           {result.original && (
             <div>
               <h3 className="text-xs font-medium text-neutral-500">Original</h3>
@@ -133,6 +155,39 @@ export default async function ContentItemPage({
           )}
         </div>
       )}
+
+      <div className="rounded border border-neutral-200 p-4 space-y-3">
+        <h2 className="font-semibold">Notes</h2>
+        <form action={addNote} className="space-y-2">
+          <input type="hidden" name="content_item_id" value={item.id} />
+          <textarea name="body" rows={3} placeholder="Add a personal note…" className="w-full rounded border border-neutral-300 px-3 py-2 text-sm" />
+          <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Add note</button>
+        </form>
+        {notes?.length === 0 && <p className="text-xs text-neutral-500">No notes yet.</p>}
+        {notes?.map((n) => (
+          <div key={n.id} className="rounded border border-neutral-200 p-3">
+            <span className="text-xs text-neutral-500">{n.kind === "personal" ? "Personal" : "AI result"} · {new Date(n.created_at).toLocaleString()}</span>
+            <p className="whitespace-pre-wrap text-sm mt-1">{n.body}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded border border-neutral-200 p-4 space-y-3">
+        <h2 className="font-semibold">AI provider (BYOK)</h2>
+        <p className="text-xs text-neutral-500">Connect your own provider account — otherwise the platform DeepSeek default is used.</p>
+        <form action={connectProvider} className="space-y-2">
+          <input type="hidden" name="content_item_id" value={item.id} />
+          <div className="flex gap-2">
+            <select name="provider" className="rounded border border-neutral-300 px-3 py-2">
+              <option value="openai">OpenAI</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="mistral">Mistral</option>
+            </select>
+            <input name="api_key" type="password" placeholder="API key" className="flex-1 rounded border border-neutral-300 px-3 py-2" />
+            <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Connect</button>
+          </div>
+        </form>
+      </div>
     </main>
   );
 }
