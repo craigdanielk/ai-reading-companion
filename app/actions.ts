@@ -19,11 +19,14 @@ export async function devLogin(): Promise<void> {
     email_confirm: true,
   });
   if (createErr) {
-    // already exists — confirm it if it isn't yet
-    const { data } = await admin.auth.admin.listUsers();
-    const demo = data.users.find((u) => u.email === DEMO_EMAIL);
-    if (demo && !demo.email_confirmed_at) {
-      await admin.auth.admin.updateUserById(demo.id, { email_confirm: true });
+    // already exists — confirm it and enforce the known demo password
+    const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const demo = data?.users?.find((u) => u.email === DEMO_EMAIL);
+    if (demo) {
+      await admin.auth.admin.updateUserById(demo.id, {
+        email_confirm: true,
+        password: DEMO_PASSWORD,
+      });
     }
   }
 
