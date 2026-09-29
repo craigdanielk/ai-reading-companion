@@ -30,6 +30,17 @@ interface Block {
   end: number;
 }
 
+interface Range {
+  start: number;
+  end: number;
+}
+
+// Highlights understood in this session live outside React, keyed by section.
+// The server is the long-term record, but its round trip lands after the stream
+// and can arrive before the row is readable — which would blink the highlight off
+// a reader who just watched it appear.
+const sessionHighlights = new Map<string, Range[]>();
+
 // Paragraph is the unit: it is what a tap can hit reliably on a phone, what a
 // highlight can own, and what the model can answer in a second or two.
 function splitBlocks(text: string): Block[] {
@@ -121,10 +132,9 @@ export function Reader({
   const [pending, setPending] = useState<{ start: number; end: number } | null>(null);
   const [popover, setPopover] = useState<{ start: number; end: number; top: number; left: number } | null>(null);
 
-  // Highlights are painted from the server's selections plus anything understood
-  // in this session, so a paragraph lights up the moment it answers rather than
-  // waiting on a round trip.
-  const [fresh, setFresh] = useState<{ start: number; end: number }[]>([]);
+  // Painted from the server's selections plus anything understood in this
+  // session, so a paragraph lights up the moment it answers.
+  const [fresh, setFresh] = useState<Range[]>(() => sessionHighlights.get(contentItemId) ?? []);
   const ranges = useMemo(
     () => [...selections.map((s) => ({ start: s.start, end: s.end })), ...fresh],
     [selections, fresh]
@@ -192,11 +202,12 @@ export function Reader({
         setStreamed(acc);
       }
       if (selection && acc.trim()) {
-        setFresh((prev) =>
-          prev.some((r) => r.start === selection.start && r.end === selection.end)
-            ? prev
-            : [...prev, selection]
-        );
+        const known = sessionHighlights.get(contentItemId) ?? [];
+        if (!known.some((r) => r.start === selection.start && r.end === selection.end)) {
+          const next = [...known, selection];
+          sessionHighlights.set(contentItemId, next);
+          setFresh(next);
+        }
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") setError((e as Error).message);
