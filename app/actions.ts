@@ -320,7 +320,14 @@ export async function createPassage(formData: FormData): Promise<void> {
   const body_text = ((formData.get("body_text") as string) || "").trim();
   if (!body_text) redirect(book_id ? "/book/" + book_id : "/library");
 
-  const firstLine = body_text.split("\n")[0].replace(/\s+/g, " ").slice(0, 60);
+  // title from the passage's own first line, cut on a word boundary
+  const firstLine = (() => {
+    const line = body_text.split("\n")[0].replace(/\s+/g, " ").trim();
+    if (line.length <= 60) return line;
+    const cut = line.slice(0, 60);
+    const at = cut.lastIndexOf(" ");
+    return (at > 24 ? cut.slice(0, at) : cut) + "…";
+  })();
 
   const { data: item, error } = await supabase
     .from("content_item")
