@@ -74,8 +74,8 @@ export default async function ContentItemPage({
     " · " + (profile?.comprehension_depth || "intermediate");
 
   return (
-    <div className="flex h-full min-h-0 flex-col lg:flex-row">
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6">
+    <div className="flex min-h-full flex-col lg:h-full lg:min-h-0 lg:flex-row">
+      <div className="px-5 py-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         <div className="mx-auto w-full max-w-2xl">
           <header>
             <Link
@@ -233,7 +233,7 @@ export default async function ContentItemPage({
         </div>
       </div>
 
-      <section className="min-h-[24rem] border-t border-line bg-paper lg:min-h-0 lg:w-[26rem] lg:shrink-0 lg:border-l lg:border-t-0">
+      <section className="border-t border-line bg-paper lg:min-h-0 lg:w-[26rem] lg:shrink-0 lg:border-l lg:border-t-0">
         <UnderstandPanel
           contentItemId={item.id}
           saved={result}
