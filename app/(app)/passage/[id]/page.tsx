@@ -18,8 +18,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: item?.title || item?.kind || "Reading" };
 }
 
-export default async function ContentItemPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ContentItemPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ auto?: string }>;
+}) {
   const { id } = await params;
+  const { auto } = await searchParams;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
@@ -232,6 +239,7 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
           saved={result}
           onSave={saveResultToNotes}
           canRun={Boolean(item.body_text)}
+          autoStart={auto === "1"}
         />
       </section>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseSections } from "@/lib/providers/parse";
 
 export interface SavedResult {
@@ -28,11 +28,13 @@ export function UnderstandPanel({
   saved,
   onSave,
   canRun,
+  autoStart,
 }: {
   contentItemId: string;
   saved: SavedResult | null;
   onSave: (formData: FormData) => Promise<void>;
   canRun: boolean;
+  autoStart?: boolean;
 }) {
   const [streamed, setStreamed] = useState("");
   const [running, setRunning] = useState(false);
@@ -97,6 +99,16 @@ export function UnderstandPanel({
       setRunning(false);
     }
   }
+
+  // Paste -> Understand is one act: when a passage was just created we run it
+  // immediately instead of asking for a second click.
+  const autoFired = useRef(false);
+  useEffect(() => {
+    if (!autoStart || autoFired.current || !canRun || saved) return;
+    autoFired.current = true;
+    void run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, canRun, saved]);
 
   function stop() {
     abort.current?.abort();

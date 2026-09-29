@@ -327,6 +327,7 @@ export async function createPassage(formData: FormData): Promise<void> {
     console.error("createPassage:", error?.message);
     redirect(book_id ? "/book/" + book_id : "/library");
   }
+  // land on the passage already understanding it (paste -> understand is one act)
 
   const { data: prefs } = await supabase
     .from("user_preference")
@@ -341,7 +342,7 @@ export async function createPassage(formData: FormData): Promise<void> {
     comprehension_depth: prefs?.default_depth || "intermediate",
   });
 
-  redirect("/passage/" + item.id);
+  redirect("/passage/" + item.id + "?auto=1");
 }
 
 export async function savePreferences(formData: FormData): Promise<void> {
