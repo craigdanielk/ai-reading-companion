@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { resolveProvider } from "@/lib/providers/resolve";
+import { ocrImage } from "@/lib/providers/ocr";
 
 export async function createContentItem(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -226,6 +227,81 @@ export async function connectProvider(formData: FormData): Promise<void> {
         is_default: true,
       });
     }
+  }
+  redirect("/library/" + content_item_id);
+}
+
+export async function uploadImage(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const content_item_id = formData.get("content_item_id") as string;
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) redirect("/library/" + content_item_id);
+
+  const path = data.user.id + "/" + content_item_id + "/" + file.name;
+  const { error } = await supabase.storage.from("content").upload(path, file);
+  if (error) {
+    console.error("uploadImage:", error.message);
+  } else {
+    await supabase.from("content_item").update({ storage_ref: path }).eq("id", content_item_id);
+  }
+  redirect("/library/" + content_item_id);
+}
+
+export async function extractText(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const content_item_id = formData.get("content_item_id") as string;
+  const { data: item } = await supabase
+    .from("content_item")
+    .select("storage_ref")
+    .eq("id", content_item_id)
+    .single();
+  const path = item?.storage_ref;
+  if (!path) redirect("/library/" + content_item_id);
+
+  const { data: signed } = await supabase.storage
+    .from("content")
+    .createSignedUrl(path, 120);
+  const imageUrl = signed?.signedUrl;
+  if (!imageUrl) redirect("/library/" + content_item_id);
+
+  const { data: conn } = await supabase
+    .from("provider_connection")
+    .select("*")
+    .eq("user_id", data.user.id)
+    .eq("provider", "openai")
+    .maybeSingle();
+  const apiKey = conn?.credential_ref;
+  if (!apiKey) {
+    console.error("extractText: OCR requires a connected OpenAI provider (BYOK)");
+    redirect("/library/" + content_item_id);
+  }
+
+  try {
+    const text = await ocrImage(apiKey, imageUrl);
+    const { data: existingEt } = await supabase
+      .from("extracted_text")
+      .select("id")
+      .eq("content_item_id", content_item_id)
+      .maybeSingle();
+    if (existingEt) {
+      await supabase
+        .from("extracted_text")
+        .update({ raw_text: text, corrected_text: text })
+        .eq("id", existingEt.id);
+    } else {
+      await supabase
+        .from("extracted_text")
+        .insert({ content_item_id, raw_text: text, corrected_text: text });
+    }
+    await supabase.from("content_item").update({ body_text: text }).eq("id", content_item_id);
+  } catch (e) {
+    console.error("extractText:", (e as Error).message);
   }
   redirect("/library/" + content_item_id);
 }

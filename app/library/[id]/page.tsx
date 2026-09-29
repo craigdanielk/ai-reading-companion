@@ -8,6 +8,8 @@ import {
   addNote,
   saveResultToNotes,
   connectProvider,
+  uploadImage,
+  extractText,
 } from "@/app/actions";
 
 export default async function ContentItemPage({
@@ -112,6 +114,24 @@ export default async function ContentItemPage({
         />
         <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Save text</button>
       </form>
+
+      <form action={uploadImage} className="space-y-2 rounded border border-neutral-200 p-4">
+        <h2 className="font-semibold">Page image (OCR)</h2>
+        <input type="hidden" name="content_item_id" value={item.id} />
+        <div className="flex gap-2">
+          <input type="file" name="file" accept="image/*" className="text-sm" />
+          <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Upload</button>
+        </div>
+        {item.storage_ref && <p className="text-xs text-neutral-500">Image stored.</p>}
+      </form>
+
+      {item.storage_ref && (
+        <form action={extractText} className="rounded border border-neutral-200 p-4">
+          <input type="hidden" name="content_item_id" value={item.id} />
+          <button type="submit" className="rounded border border-neutral-300 px-4 py-2 text-sm">Extract text (OpenAI vision)</button>
+          <p className="text-xs text-neutral-500 mt-1">Requires a connected OpenAI provider (BYOK).</p>
+        </form>
+      )}
 
       <form action={understand} className="rounded border border-neutral-200 p-4">
         <input type="hidden" name="content_item_id" value={item.id} />
