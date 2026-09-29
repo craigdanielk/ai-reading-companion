@@ -125,6 +125,7 @@ export function Reader({
   const abort = useRef<AbortController | null>(null);
   const autoFired = useRef(false);
   const runSeq = useRef(0);
+  const pageNoteRef = useRef<HTMLElement | null>(null);
 
   const blocks = useMemo(() => splitBlocks(bodyText), [bodyText]);
   const [streamed, setStreamed] = useState("");
@@ -295,6 +296,13 @@ export function Reader({
     });
   }
 
+  // Asking for the whole text should show the whole text's note, not leave the
+  // reader at the top wondering where it went.
+  useEffect(() => {
+    if (activeMode !== "page" || !running) return;
+    pageNoteRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [activeMode, running]);
+
   // A one-paragraph text is the quick-translate case: understand it on arrival.
   useEffect(() => {
     if (autoFired.current || !canRun || pageNote || blocks.length !== 1) return;
@@ -305,8 +313,7 @@ export function Reader({
 
   return (
     <div className="mx-auto w-full max-w-[42rem] px-5 py-10 lg:max-w-[64rem] lg:px-10 lg:py-16">
-      <div className="lg:grid lg:grid-cols-[minmax(0,42rem)_19rem] lg:items-start lg:gap-x-[3.5rem]">
-      <header>
+      <header className="lg:max-w-[42rem]">
         <h1 className="font-display text-[28px] font-semibold leading-[1.2] text-ink lg:text-[32px]">
           {title}
         </h1>
@@ -334,17 +341,6 @@ export function Reader({
           )}
         </div>
       </header>
-
-      {(wholeText || (live?.mode === "page" && running)) && (
-        <aside className="gloss-in mt-5 border-l border-line pl-4 lg:mt-[6px] lg:border-l-0 lg:pl-0">
-          {live?.mode === "page" && running && !live.understanding ? (
-            <Skeleton />
-          ) : (
-            <GlossBody r={wholeText!} hard />
-          )}
-        </aside>
-      )}
-      </div>
 
       {!hasAny && !running && canRun && (
         <p className="mt-6 text-[13px] text-muted lg:max-w-[42rem]">
@@ -405,6 +401,22 @@ export function Reader({
           );
         })}
       </div>
+
+      {(wholeText || (live?.mode === "page" && running)) && (
+        <section
+          ref={pageNoteRef}
+          className="gloss-in mt-12 border-t border-line pt-6 lg:max-w-[42rem]"
+        >
+          <p className="text-[12px] text-muted">The whole text</p>
+          <div className="mt-3">
+            {live?.mode === "page" && running && !live.understanding ? (
+              <Skeleton />
+            ) : (
+              <GlossBody r={wholeText!} hard />
+            )}
+          </div>
+        </section>
+      )}
 
       {popover && (
         <button
