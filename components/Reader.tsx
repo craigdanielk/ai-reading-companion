@@ -120,9 +120,13 @@ export function Reader({
   const [pending, setPending] = useState<{ start: number; end: number } | null>(null);
   const [popover, setPopover] = useState<{ start: number; end: number; top: number; left: number } | null>(null);
 
+  // Highlights are painted from the server's selections plus anything understood
+  // in this session, so a paragraph lights up the moment it answers rather than
+  // waiting on a round trip.
+  const [fresh, setFresh] = useState<{ start: number; end: number }[]>([]);
   const ranges = useMemo(
-    () => selections.map((s) => ({ start: s.start, end: s.end })),
-    [selections]
+    () => [...selections.map((s) => ({ start: s.start, end: s.end })), ...fresh],
+    [selections, fresh]
   );
 
   const live: Result | null = streamed
@@ -185,6 +189,13 @@ export function Reader({
         if (done) break;
         acc += decoder.decode(value, { stream: true });
         setStreamed(acc);
+      }
+      if (selection && acc.trim()) {
+        setFresh((prev) =>
+          prev.some((r) => r.start === selection.start && r.end === selection.end)
+            ? prev
+            : [...prev, selection]
+        );
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") setError((e as Error).message);
