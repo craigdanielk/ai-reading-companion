@@ -10,6 +10,11 @@ export interface LanguageNuance {
   code: string;
   name: string;
   nativeName: string;
+  /** The letter this language owns. Used for its circular badge: a flag would
+   *  have to pick a country (Spanish is 20 of them, Arabic 22). */
+  glyph: string;
+  /** Badge tint, hue degrees. */
+  tint: number;
   /** what to preserve/explain when this language is the SOURCE */
   source: string;
   /** how to write naturally when this language is the TARGET */
@@ -21,6 +26,8 @@ export const LANGUAGES: LanguageNuance[] = [
     code: "en",
     name: "English",
     nativeName: "English",
+    glyph: "A",
+    tint: 216,
     source:
       "Preserve register (formal / neutral / colloquial) and contraction level; surface English idioms, phrasal verbs and understatement that would be opaque if rendered literally.",
     target:
@@ -30,6 +37,8 @@ export const LANGUAGES: LanguageNuance[] = [
     code: "fr",
     name: "French",
     nativeName: "Français",
+    glyph: "Ç",
+    tint: 268,
     source:
       "Preserve the tu/vous relationship the source implies; surface French idioms and register shifts between écrit and oral.",
     target:
@@ -39,6 +48,8 @@ export const LANGUAGES: LanguageNuance[] = [
     code: "es",
     name: "Spanish",
     nativeName: "Español",
+    glyph: "Ñ",
+    tint: 18,
     source:
       "Note regional variation (Spain vs Latin America) and the tú/vos/usted relationship; surface regional vocabulary that carries meaning.",
     target:
@@ -48,6 +59,8 @@ export const LANGUAGES: LanguageNuance[] = [
     code: "ar",
     name: "Arabic",
     nativeName: "العربية",
+    glyph: "ع",
+    tint: 158,
     source:
       "Identify the register: Modern Standard Arabic or a dialect (Egyptian / Levantine / Gulf / Maghrebi). Preserve cultural and religious references. Explain root-and-pattern morphology where it carries meaning.",
     target:
@@ -57,6 +70,8 @@ export const LANGUAGES: LanguageNuance[] = [
     code: "de",
     name: "German",
     nativeName: "Deutsch",
+    glyph: "ß",
+    tint: 42,
     source:
       "Preserve the Sie/du relationship; surface Modalpartikeln (doch, mal, ja, halt, eben) whose function is not literal; unpack stacked compounds.",
     target:
@@ -66,6 +81,8 @@ export const LANGUAGES: LanguageNuance[] = [
     code: "ja",
     name: "Japanese",
     nativeName: "日本語",
+    glyph: "あ",
+    tint: 340,
     source:
       "Identify the keigo register (sonkeigo / kenjōgo / teineigo / plain) and preserve it. Resolve omitted subjects explicitly, since Japanese elides them. Note uchi/soto orientation. Surface kanyoku (idioms), kotowaza (proverbs) and honorific suffixes. State what is implied, since the language is high-context.",
     target:

@@ -1,28 +1,53 @@
 import { createClient } from "@/lib/supabase/server";
 import { resolveProviderConfig } from "@/lib/providers/resolve";
-import { buildSystemPrompt, buildUserPrompt } from "@/lib/providers/prompt";
-import { parseSections } from "@/lib/providers/parse";
+import {
+  buildSystemPrompt,
+  buildUserPrompt,
+  buildPageSystemPrompt,
+  buildPagePrompt,
+} from "@/lib/providers/prompt";
+import { parseSections, parsePageSections } from "@/lib/providers/parse";
 import type { ComprehensionDepth } from "@/lib/providers/types";
 import type { DomainCode } from "@/lib/nuance/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type Mode = "passage" | "page";
+
 export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return new Response("Unauthorized", { status: 401 });
 
-  const body = await req.json().catch(() => ({} as Record<string, string>));
-  const contentItemId = body.content_item_id;
+  const body = await req.json().catch(() => ({} as Record<string, unknown>));
+  const contentItemId = body.content_item_id as string | undefined;
   if (!contentItemId) return new Response("Missing content_item_id", { status: 400 });
+
+  const mode: Mode = body.mode === "page" ? "page" : "passage";
+  const asked = body.selection as { start?: number; end?: number } | undefined;
 
   const { data: item } = await supabase
     .from("content_item")
     .select("id, body_text")
     .eq("id", contentItemId)
     .single();
-  if (!item?.body_text) return new Response("This item has no passage yet", { status: 400 });
+  const full = item?.body_text || "";
+  if (!full.trim()) return new Response("This text is empty", { status: 400 });
+
+  // A selection is sliced server-side from the stored body, so the offsets the
+  // reader reports are authoritative and cannot drift from what was sent.
+  let text = full;
+  let range: { start: number; end: number } | null = null;
+  if (mode === "passage" && asked && Number.isFinite(asked.start) && Number.isFinite(asked.end)) {
+    const start = Math.max(0, Math.min(Math.round(asked.start as number), full.length));
+    const end = Math.max(start, Math.min(Math.round(asked.end as number), full.length));
+    const slice = full.slice(start, end).trim();
+    if (slice) {
+      text = slice;
+      range = { start, end };
+    }
+  }
 
   const { data: profile } = await supabase
     .from("content_profile")
@@ -34,7 +59,7 @@ export async function POST(req: Request) {
   if (!cfg) return new Response("No AI provider configured", { status: 503 });
 
   const cReq = {
-    text: item.body_text,
+    text,
     sourceLanguage: profile?.source_language || "auto",
     targetLanguage: profile?.target_language || "en",
     comprehensionDepth: (profile?.comprehension_depth || "intermediate") as ComprehensionDepth,
@@ -50,8 +75,14 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       model: cfg.model,
       messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: buildUserPrompt(cReq) },
+        {
+          role: "system",
+          content: mode === "page" ? buildPageSystemPrompt() : buildSystemPrompt(),
+        },
+        {
+          role: "user",
+          content: mode === "page" ? buildPagePrompt(cReq) : buildUserPrompt(cReq),
+        },
       ],
       stream: true,
       temperature: 0.3,
@@ -65,7 +96,7 @@ export async function POST(req: Request) {
 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-  let full = "";
+  let full_out = "";
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -87,7 +118,7 @@ export async function POST(req: Request) {
               const j = JSON.parse(payload);
               const delta = j.choices?.[0]?.delta?.content || "";
               if (delta) {
-                full += delta;
+                full_out += delta;
                 controller.enqueue(encoder.encode(delta));
               }
             } catch {
@@ -100,38 +131,49 @@ export async function POST(req: Request) {
       }
 
       // Persist BEFORE closing the response: once the stream is closed Vercel may
-      // freeze the function and these writes never land (comprehension would
-      // vanish on reload).
+      // freeze the function and these writes never land.
       try {
-        const parsed = parseSections(full);
-        if (!parsed.understanding) return;
-
-        let etId: string | null = null;
-        const { data: et } = await supabase
-          .from("extracted_text")
-          .select("id")
-          .eq("content_item_id", contentItemId)
-          .maybeSingle();
-        if (et) etId = et.id;
-        else {
-          const { data: made, error: etErr } = await supabase
-            .from("extracted_text")
-            .insert({ content_item_id: contentItemId, raw_text: item.body_text, corrected_text: item.body_text })
-            .select("id")
-            .single();
-          if (etErr) console.error("extracted_text insert:", etErr.message);
-          etId = made?.id ?? null;
-        }
-        if (etId) {
-          const { error: rErr } = await supabase.from("ai_result").insert({
-            extracted_text_id: etId,
-            original: parsed.original || item.body_text,
-            understanding: parsed.understanding,
-            terms: parsed.importantTerms || [],
-            key_idea: parsed.keyIdea || "",
-            explanation: parsed.explanation || "",
-          });
-          if (rErr) console.error("ai_result insert:", rErr.message);
+        if (mode === "page") {
+          const parsed = parsePageSections(full_out);
+          if (parsed.sense) {
+            const etId = await ensureExtractedText(supabase, contentItemId, full);
+            if (etId) {
+              const { error } = await supabase.from("ai_result").insert({
+                extracted_text_id: etId,
+                mode: "page",
+                original: "",
+                understanding: parsed.sense,
+                terms: parsed.hard || [],
+                key_idea: "",
+                explanation: "",
+              });
+              if (error) console.error("ai_result(page) insert:", error.message);
+            }
+          }
+        } else {
+          const parsed = parseSections(full_out);
+          if (parsed.understanding) {
+            let selectionId: string | null = null;
+            if (range) {
+              selectionId = await ensureSelection(supabase, contentItemId, range, text, full);
+            }
+            const etId = selectionId
+              ? null
+              : await ensureExtractedText(supabase, contentItemId, full);
+            if (selectionId || etId) {
+              const { error } = await supabase.from("ai_result").insert({
+                extracted_text_id: etId,
+                selection_id: selectionId,
+                mode: "passage",
+                original: parsed.original || text,
+                understanding: parsed.understanding,
+                terms: parsed.importantTerms || [],
+                key_idea: parsed.keyIdea || "",
+                explanation: parsed.explanation || "",
+              });
+              if (error) console.error("ai_result insert:", error.message);
+            }
+          }
         }
 
         const now = new Date().toISOString();
@@ -163,4 +205,56 @@ export async function POST(req: Request) {
       "X-Accel-Buffering": "no",
     },
   });
+}
+
+type Sb = Awaited<ReturnType<typeof createClient>>;
+
+async function ensureExtractedText(sb: Sb, contentItemId: string, bodyText: string): Promise<string | null> {
+  const { data: et } = await sb
+    .from("extracted_text")
+    .select("id")
+    .eq("content_item_id", contentItemId)
+    .maybeSingle();
+  if (et) return et.id;
+  const { data: made, error } = await sb
+    .from("extracted_text")
+    .insert({ content_item_id: contentItemId, raw_text: bodyText, corrected_text: bodyText })
+    .select("id")
+    .single();
+  if (error) console.error("extracted_text insert:", error.message);
+  return made?.id ?? null;
+}
+
+// Anchors are stored W3C-annotation style: offsets for lookup, quote plus
+// surrounding context so the highlight can be re-found if the body is edited.
+async function ensureSelection(
+  sb: Sb,
+  contentItemId: string,
+  range: { start: number; end: number },
+  quote: string,
+  full: string
+): Promise<string | null> {
+  const { data: found } = await sb
+    .from("selection")
+    .select("id")
+    .eq("content_item_id", contentItemId)
+    .eq("start_offset", range.start)
+    .eq("end_offset", range.end)
+    .maybeSingle();
+  if (found) return found.id;
+
+  const { data: made, error } = await sb
+    .from("selection")
+    .insert({
+      content_item_id: contentItemId,
+      start_offset: range.start,
+      end_offset: range.end,
+      quote,
+      prefix: full.slice(Math.max(0, range.start - 40), range.start),
+      suffix: full.slice(range.end, Math.min(full.length, range.end + 40)),
+    })
+    .select("id")
+    .single();
+  if (error) console.error("selection insert:", error.message);
+  return made?.id ?? null;
 }

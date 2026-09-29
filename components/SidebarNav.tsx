@@ -54,7 +54,7 @@ export function SidebarNav({
         ))}
       </div>
 
-      <p className="mt-4 px-2.5 pb-1 text-[10px] font-medium tracking-wider text-muted">PASSAGES</p>
+      <p className="mt-4 px-2.5 pb-1 text-[10px] font-medium tracking-wider text-muted">LOOSE TEXTS</p>
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         {items.length === 0 && <p className="px-2.5 py-1 text-xs text-muted">Nothing yet</p>}
         {items.map((i) => (

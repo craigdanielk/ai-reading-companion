@@ -39,21 +39,26 @@ export default async function LibraryPage() {
         <Compose />
       </div>
 
-      <form action={createBook} className="mt-4 flex flex-wrap items-center gap-2 rounded-card border border-dashed border-line p-3">
-        <input
-          name="title"
-          placeholder="New book title"
-          className="min-w-0 flex-1 rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink"
-        />
-        <input
-          name="author"
-          placeholder="Author (optional)"
-          className="min-w-0 flex-1 rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink"
-        />
-        <button type="submit" className="rounded-pill border border-line bg-paper px-4 py-2.5 text-sm font-medium hover:bg-paper-2">
-          Add book
-        </button>
-      </form>
+      <details className="mt-3">
+        <summary className="cursor-pointer text-xs text-muted hover:text-ink">
+          Start an empty book instead
+        </summary>
+        <form action={createBook} className="mt-3 flex flex-wrap items-center gap-2 rounded-card border border-dashed border-line p-3">
+          <input
+            name="title"
+            placeholder="Book title"
+            className="min-w-0 flex-1 rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink"
+          />
+          <input
+            name="author"
+            placeholder="Author (optional)"
+            className="min-w-0 flex-1 rounded-input border border-line bg-paper px-3 py-2.5 text-[15px] text-ink"
+          />
+          <button type="submit" className="rounded-pill border border-line bg-paper px-4 py-2.5 text-sm font-medium hover:bg-paper-2">
+            Add book
+          </button>
+        </form>
+      </details>
 
       {(books?.length ?? 0) > 0 && (
         <ul className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4">
@@ -85,7 +90,7 @@ export default async function LibraryPage() {
 
       {unfiled.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-[11px] font-medium tracking-wider text-muted">UNFILED PASSAGES</h2>
+          <h2 className="text-[11px] font-medium tracking-wider text-muted">LOOSE TEXTS</h2>
           <ul className="mt-3 divide-y divide-line rounded-card border border-line">
             {unfiled.map((p) => (
               <li key={p.id}>

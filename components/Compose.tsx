@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createPassage } from "@/app/actions";
+import { createText } from "@/app/actions";
 
 function Submit({ canSubmit }: { canSubmit: boolean }) {
   const { pending } = useFormStatus();
@@ -20,7 +20,7 @@ function Submit({ canSubmit }: { canSubmit: boolean }) {
 export function Compose({ bookId, autoFocus }: { bookId?: string | null; autoFocus?: boolean }) {
   const [text, setText] = useState("");
   return (
-    <form action={createPassage} className="rounded-card border border-line bg-paper-2/40 p-3">
+    <form action={createText} className="rounded-card border border-line bg-paper-2/40 p-3">
       {bookId ? <input type="hidden" name="book_id" value={bookId} /> : null}
       <textarea
         name="body_text"
