@@ -51,3 +51,18 @@ export async function setContentProfile(formData: FormData): Promise<void> {
   if (error) console.error("setContentProfile:", error.message);
   redirect("/library/" + content_item_id);
 }
+
+export async function updateBodyText(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const id = formData.get("id") as string;
+  const body_text = (formData.get("body_text") as string) || null;
+  const { error } = await supabase
+    .from("content_item")
+    .update({ body_text })
+    .eq("id", id);
+  if (error) console.error("updateBodyText:", error.message);
+  redirect("/library/" + id);
+}

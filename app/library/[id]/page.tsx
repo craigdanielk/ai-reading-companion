@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { setContentProfile } from "@/app/actions";
+import { setContentProfile, updateBodyText } from "@/app/actions";
 
 export default async function ContentItemPage({
   params,
@@ -75,11 +75,23 @@ export default async function ContentItemPage({
         )}
       </form>
 
-      {item.body_text ? (
-        <div className="rounded border border-neutral-200 p-4 whitespace-pre-wrap">{item.body_text}</div>
-      ) : (
-        <p className="text-neutral-500 text-sm">No text yet — ingestion (T6) adds content here.</p>
-      )}
+      <form action={updateBodyText} className="space-y-3 rounded border border-neutral-200 p-4">
+        <h2 className="font-semibold">Content text</h2>
+        <input type="hidden" name="id" value={item.id} />
+        <textarea
+          name="body_text"
+          defaultValue={item.body_text || ""}
+          rows={12}
+          placeholder="Paste or type the text you want to understand…"
+          className="w-full rounded border border-neutral-300 px-3 py-2 font-mono text-sm"
+        />
+        <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">
+          Save text
+        </button>
+        <p className="text-xs text-neutral-500">
+          Save the text, then use “Understand” (next) on any passage.
+        </p>
+      </form>
     </main>
   );
 }
