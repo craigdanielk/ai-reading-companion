@@ -9,6 +9,11 @@ export interface SidebarItem {
   kind: string;
 }
 
+export interface SidebarBook {
+  id: string;
+  title: string;
+}
+
 function Row({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
     <Link
@@ -23,19 +28,37 @@ function Row({ href, active, children }: { href: string; active: boolean; childr
   );
 }
 
-export function SidebarNav({ items, email }: { items: SidebarItem[]; email: string }) {
+export function SidebarNav({
+  books,
+  items,
+  email,
+}: {
+  books: SidebarBook[];
+  items: SidebarItem[];
+  email: string;
+}) {
   const pathname = usePathname();
   return (
     <div className="flex h-full flex-col">
-      <Row href="/new" active={pathname === "/new"}>
-        + Add content
+      <Row href="/library" active={pathname === "/library"}>
+        Library
       </Row>
 
-      <p className="mt-4 px-2.5 pb-1 text-[10px] font-medium tracking-wider text-muted">LIBRARY</p>
+      <p className="mt-4 px-2.5 pb-1 text-[10px] font-medium tracking-wider text-muted">BOOKS</p>
+      <div className="max-h-[38%] min-h-0 overflow-y-auto pr-1">
+        {books.length === 0 && <p className="px-2.5 py-1 text-xs text-muted">No books yet</p>}
+        {books.map((b) => (
+          <Row key={b.id} href={"/book/" + b.id} active={pathname === "/book/" + b.id}>
+            {b.title}
+          </Row>
+        ))}
+      </div>
+
+      <p className="mt-4 px-2.5 pb-1 text-[10px] font-medium tracking-wider text-muted">PASSAGES</p>
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         {items.length === 0 && <p className="px-2.5 py-1 text-xs text-muted">Nothing yet</p>}
         {items.map((i) => (
-          <Row key={i.id} href={"/library/" + i.id} active={pathname === "/library/" + i.id}>
+          <Row key={i.id} href={"/passage/" + i.id} active={pathname === "/passage/" + i.id}>
             {i.title || i.kind}
           </Row>
         ))}

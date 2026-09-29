@@ -27,6 +27,10 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
   const { data: item } = await supabase.from("content_item").select("*").eq("id", id).single();
   if (!item) notFound();
 
+  const { data: parentBook } = item.book_id
+    ? await supabase.from("book").select("id, title").eq("id", item.book_id).maybeSingle()
+    : { data: null };
+
   const { data: profile } = await supabase
     .from("content_profile")
     .select("*")
@@ -67,6 +71,12 @@ export default async function ContentItemPage({ params }: { params: Promise<{ id
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6">
         <div className="mx-auto w-full max-w-2xl">
           <header>
+            <Link
+              href={parentBook ? "/book/" + parentBook.id : "/library"}
+              className="mb-2 inline-block text-xs text-muted hover:text-ink"
+            >
+              &larr; {parentBook?.title || "Library"}
+            </Link>
             <h1 className="font-display text-2xl font-semibold leading-tight">
               {item.title || item.kind}
             </h1>

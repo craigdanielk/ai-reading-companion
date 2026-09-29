@@ -75,7 +75,7 @@ export async function createContentItem(formData: FormData): Promise<void> {
     comprehension_depth: prefs?.default_depth || "intermediate",
   });
 
-  redirect("/library/" + item.id);
+  redirect("/passage/" + item.id);
 }
 
 export async function setContentProfile(formData: FormData): Promise<void> {
@@ -113,7 +113,7 @@ export async function setContentProfile(formData: FormData): Promise<void> {
     error = res.error;
   }
   if (error) console.error("setContentProfile:", error.message);
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
 }
 
 export async function updateBodyText(formData: FormData): Promise<void> {
@@ -128,7 +128,7 @@ export async function updateBodyText(formData: FormData): Promise<void> {
     .update({ body_text })
     .eq("id", id);
   if (error) console.error("updateBodyText:", error.message);
-  redirect("/library/" + id);
+  redirect("/passage/" + id);
 }
 
 export async function understand(formData: FormData): Promise<void> {
@@ -143,7 +143,7 @@ export async function understand(formData: FormData): Promise<void> {
     .eq("id", content_item_id)
     .single();
   const text = item?.body_text;
-  if (!text) redirect("/library/" + content_item_id);
+  if (!text) redirect("/passage/" + content_item_id);
 
   const { data: profile } = await supabase
     .from("content_profile")
@@ -172,7 +172,7 @@ export async function understand(formData: FormData): Promise<void> {
       .single();
     if (!newEt) {
       console.error("understand: failed to create extracted_text");
-      redirect("/library/" + content_item_id);
+      redirect("/passage/" + content_item_id);
     }
     etId = newEt.id;
   }
@@ -220,7 +220,7 @@ export async function understand(formData: FormData): Promise<void> {
     });
   }
 
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
 }
 
 export async function addNote(formData: FormData): Promise<void> {
@@ -230,7 +230,7 @@ export async function addNote(formData: FormData): Promise<void> {
 
   const content_item_id = formData.get("content_item_id") as string;
   const body = (formData.get("body") as string) || "";
-  if (!body.trim()) redirect("/library/" + content_item_id);
+  if (!body.trim()) redirect("/passage/" + content_item_id);
 
   const { error } = await supabase.from("note").insert({
     content_item_id,
@@ -238,7 +238,7 @@ export async function addNote(formData: FormData): Promise<void> {
     kind: "personal",
   });
   if (error) console.error("addNote:", error.message);
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
 }
 
 export async function saveResultToNotes(formData: FormData): Promise<void> {
@@ -261,7 +261,87 @@ export async function saveResultToNotes(formData: FormData): Promise<void> {
     kind: "ai",
   });
   if (error) console.error("saveResultToNotes:", error.message);
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
+}
+
+export async function createBook(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const title = ((formData.get("title") as string) || "").trim() || "Untitled book";
+  const author = ((formData.get("author") as string) || "").trim() || null;
+
+  const { data: book, error } = await supabase
+    .from("book")
+    .insert({ user_id: data.user.id, title, author })
+    .select("id")
+    .single();
+  if (error || !book) {
+    console.error("createBook:", error?.message);
+    redirect("/library");
+  }
+  redirect("/book/" + book.id);
+}
+
+export async function updateBook(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const id = formData.get("id") as string;
+  const title = ((formData.get("title") as string) || "").trim();
+  const author = ((formData.get("author") as string) || "").trim() || null;
+  if (title) await supabase.from("book").update({ title, author }).eq("id", id);
+  redirect("/book/" + id);
+}
+
+export async function deleteBook(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+  const id = formData.get("id") as string;
+  await supabase.from("book").delete().eq("id", id);
+  redirect("/library");
+}
+
+// The primary act: paste a passage -> it becomes a passage inside the book,
+// titled from its own first line, then opens ready to understand.
+export async function createPassage(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const book_id = ((formData.get("book_id") as string) || "") || null;
+  const body_text = ((formData.get("body_text") as string) || "").trim();
+  if (!body_text) redirect(book_id ? "/book/" + book_id : "/library");
+
+  const firstLine = body_text.split("\n")[0].replace(/\s+/g, " ").slice(0, 60);
+
+  const { data: item, error } = await supabase
+    .from("content_item")
+    .insert({ user_id: data.user.id, book_id, kind: "text", title: firstLine, body_text })
+    .select("id")
+    .single();
+  if (error || !item) {
+    console.error("createPassage:", error?.message);
+    redirect(book_id ? "/book/" + book_id : "/library");
+  }
+
+  const { data: prefs } = await supabase
+    .from("user_preference")
+    .select("*")
+    .eq("user_id", data.user.id)
+    .maybeSingle();
+  await supabase.from("content_profile").insert({
+    content_item_id: item.id,
+    source_language: prefs?.default_source_language || "auto",
+    target_language: prefs?.default_target_language || "en",
+    domain: prefs?.default_domain || "general",
+    comprehension_depth: prefs?.default_depth || "intermediate",
+  });
+
+  redirect("/passage/" + item.id);
 }
 
 export async function savePreferences(formData: FormData): Promise<void> {
@@ -332,7 +412,7 @@ export async function connectProvider(formData: FormData): Promise<void> {
       });
     }
   }
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
 }
 
 export async function uploadImage(formData: FormData): Promise<void> {
@@ -342,7 +422,7 @@ export async function uploadImage(formData: FormData): Promise<void> {
 
   const content_item_id = formData.get("content_item_id") as string;
   const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) redirect("/library/" + content_item_id);
+  if (!file || file.size === 0) redirect("/passage/" + content_item_id);
 
   const path = data.user.id + "/" + content_item_id + "/" + file.name;
   const { error } = await supabase.storage.from("content").upload(path, file);
@@ -351,7 +431,7 @@ export async function uploadImage(formData: FormData): Promise<void> {
   } else {
     await supabase.from("content_item").update({ storage_ref: path }).eq("id", content_item_id);
   }
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
 }
 
 export async function extractText(formData: FormData): Promise<void> {
@@ -366,13 +446,13 @@ export async function extractText(formData: FormData): Promise<void> {
     .eq("id", content_item_id)
     .single();
   const path = item?.storage_ref;
-  if (!path) redirect("/library/" + content_item_id);
+  if (!path) redirect("/passage/" + content_item_id);
 
   const { data: signed } = await supabase.storage
     .from("content")
     .createSignedUrl(path, 120);
   const imageUrl = signed?.signedUrl;
-  if (!imageUrl) redirect("/library/" + content_item_id);
+  if (!imageUrl) redirect("/passage/" + content_item_id);
 
   const { data: conn } = await supabase
     .from("provider_connection")
@@ -383,7 +463,7 @@ export async function extractText(formData: FormData): Promise<void> {
   const apiKey = conn?.credential_ref;
   if (!apiKey) {
     console.error("extractText: OCR requires a connected OpenAI provider (BYOK)");
-    redirect("/library/" + content_item_id);
+    redirect("/passage/" + content_item_id);
   }
 
   try {
@@ -407,5 +487,5 @@ export async function extractText(formData: FormData): Promise<void> {
   } catch (e) {
     console.error("extractText:", (e as Error).message);
   }
-  redirect("/library/" + content_item_id);
+  redirect("/passage/" + content_item_id);
 }

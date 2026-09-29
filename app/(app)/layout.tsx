@@ -9,10 +9,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect("/login");
 
-  const { data: items } = await supabase
-    .from("content_item")
-    .select("id, title, kind")
-    .order("created_at", { ascending: false });
+  const [{ data: books }, { data: items }] = await Promise.all([
+    supabase.from("book").select("id, title").order("created_at", { ascending: false }),
+    supabase
+      .from("content_item")
+      .select("id, title, kind")
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ]);
 
   return (
     <div className="flex h-dvh overflow-hidden">
@@ -24,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </span>
         </Link>
         <nav className="min-h-0 flex-1 overflow-hidden p-3">
-          <SidebarNav items={items ?? []} email={data.user.email ?? ""} />
+          <SidebarNav books={books ?? []} items={items ?? []} email={data.user.email ?? ""} />
         </nav>
       </aside>
 
@@ -35,7 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <span className="font-display text-[13px] font-semibold">AI Reading Companion</span>
           </Link>
           <nav className="flex items-center gap-3 text-[13px]">
-            <Link href="/new" className="text-ink-soft hover:text-ember">New</Link>
+            <Link href="/library" className="text-ink-soft hover:text-ember">Library</Link>
             <Link href="/settings" className="text-ink-soft hover:text-ember">Settings</Link>
           </nav>
         </header>
