@@ -50,10 +50,21 @@ export const deepseekProvider: ComprehensionProvider = {
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content || "";
     const parsed = JSON.parse(content);
+    const rawTerms = parsed.importantTerms;
+    const importantTerms = Array.isArray(rawTerms)
+      ? rawTerms.map((t: unknown) => {
+          if (typeof t === "string") return t;
+          if (t && typeof t === "object") {
+            const o = t as Record<string, unknown>;
+            return [o.term, o.meaning].filter(Boolean).join(" — ");
+          }
+          return String(t);
+        })
+      : [];
     return {
       original: parsed.original || req.text,
       understanding: parsed.understanding || "",
-      importantTerms: Array.isArray(parsed.importantTerms) ? parsed.importantTerms : [],
+      importantTerms,
       keyIdea: parsed.keyIdea || "",
       explanation: parsed.explanation || "",
     };
