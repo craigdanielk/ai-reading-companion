@@ -16,6 +16,9 @@ export default function Home() {
             Sign in
           </Link>
         </div>
+        <Link href="/privacy" className="text-xs text-neutral-400 hover:underline">
+          Privacy & data handling
+        </Link>
       </div>
     </main>
   );

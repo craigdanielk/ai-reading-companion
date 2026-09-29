@@ -56,6 +56,12 @@ export default async function ContentItemPage({
     .eq("content_item_id", id)
     .order("created_at", { ascending: false });
 
+  const { data: usageRow } = await supabase
+    .from("usage")
+    .select("counters, last_position")
+    .eq("content_item_id", id)
+    .maybeSingle();
+
   return (
     <main className="max-w-2xl mx-auto p-6 space-y-6">
       <Link href="/library" className="text-sm text-neutral-500 hover:underline">&larr; Library</Link>
@@ -64,6 +70,12 @@ export default async function ContentItemPage({
         <p className="text-sm text-neutral-500">
           {item.kind}
           {item.source ? " · " + item.source : ""}
+          {usageRow?.counters?.comprehends
+            ? " · " + usageRow.counters.comprehends + " comprehends"
+            : ""}
+          {usageRow?.last_position
+            ? " · last " + new Date(usageRow.last_position).toLocaleString()
+            : ""}
         </p>
       </div>
 
@@ -188,6 +200,10 @@ export default async function ContentItemPage({
           </div>
         </form>
       </div>
+
+      <p className="text-xs text-neutral-400">
+        <Link href="/privacy" className="hover:underline">Privacy & data handling</Link>
+      </p>
     </main>
   );
 }

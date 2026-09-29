@@ -131,6 +131,28 @@ export async function understand(formData: FormData): Promise<void> {
   } catch (e) {
     console.error("understand provider:", (e as Error).message);
   }
+
+  // track usage (T14)
+  const now = new Date().toISOString();
+  const { data: usageRow } = await supabase
+    .from("usage")
+    .select("id, counters")
+    .eq("user_id", data.user.id)
+    .eq("content_item_id", content_item_id)
+    .maybeSingle();
+  const prev = (usageRow?.counters ?? {}) as Record<string, number>;
+  const counters = { ...prev, comprehends: (prev.comprehends || 0) + 1 };
+  if (usageRow) {
+    await supabase.from("usage").update({ counters, last_position: now }).eq("id", usageRow.id);
+  } else {
+    await supabase.from("usage").insert({
+      user_id: data.user.id,
+      content_item_id,
+      counters,
+      last_position: now,
+    });
+  }
+
   redirect("/library/" + content_item_id);
 }
 
