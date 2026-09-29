@@ -12,7 +12,12 @@ export function buildSystemPrompt(): string {
 }
 
 export function buildUserPrompt(req: ComprehensionRequest): string {
-  const nuance = buildNuanceDirective(req.targetLanguage, req.domain, req.comprehensionDepth);
+  const nuance = buildNuanceDirective(
+    req.sourceLanguage ?? "auto",
+    req.targetLanguage,
+    req.domain,
+    req.comprehensionDepth
+  );
   return [
     nuance,
     "",

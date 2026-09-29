@@ -4,6 +4,8 @@ export type ComprehensionDepth = "beginner" | "intermediate" | "advanced";
 
 export interface ComprehensionRequest {
   text: string;
+  /** source language code, or "auto" to detect */
+  sourceLanguage?: string | null;
   targetLanguage: string;
   comprehensionDepth: ComprehensionDepth;
   /** general | literary | scientific | legal */

@@ -85,7 +85,21 @@ export default async function ContentItemPage({
         <h2 className="font-semibold">Comprehension profile</h2>
         <input type="hidden" name="content_item_id" value={item.id} />
         <div className="flex flex-wrap gap-3">
-          <select name="target_language" defaultValue={profile?.target_language || "en"} className="rounded border border-neutral-300 px-3 py-2">
+          <label className="flex flex-col text-xs text-neutral-500">
+            Source
+            <select name="source_language" defaultValue={profile?.source_language || "auto"} className="rounded border border-neutral-300 px-3 py-2 text-sm text-black">
+              <option value="auto">Auto-detect</option>
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+              <option value="ar">Arabic</option>
+              <option value="de">German</option>
+              <option value="ja">Japanese</option>
+            </select>
+          </label>
+          <label className="flex flex-col text-xs text-neutral-500">
+            Read in
+            <select name="target_language" defaultValue={profile?.target_language || "en"} className="rounded border border-neutral-300 px-3 py-2 text-sm text-black">
             <option value="en">English</option>
             <option value="fr">French</option>
             <option value="es">Spanish</option>
@@ -93,6 +107,7 @@ export default async function ContentItemPage({
             <option value="de">German</option>
             <option value="ja">Japanese</option>
           </select>
+          </label>
           <select name="domain" defaultValue={profile?.domain || "general"} className="rounded border border-neutral-300 px-3 py-2">
             <option value="general">General</option>
             <option value="literary">Literary</option>

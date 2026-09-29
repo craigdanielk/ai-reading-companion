@@ -64,6 +64,7 @@ export async function setContentProfile(formData: FormData): Promise<void> {
   const target_language = formData.get("target_language") as string;
   const comprehension_depth = formData.get("comprehension_depth") as string;
   const domain = (formData.get("domain") as string) || "general";
+  const source_language = (formData.get("source_language") as string) || "auto";
 
   const { data: existing } = await supabase
     .from("content_profile")
@@ -75,12 +76,13 @@ export async function setContentProfile(formData: FormData): Promise<void> {
   if (existing) {
     const res = await supabase
       .from("content_profile")
-      .update({ target_language, comprehension_depth, domain })
+      .update({ source_language, target_language, comprehension_depth, domain })
       .eq("id", existing.id);
     error = res.error;
   } else {
     const res = await supabase.from("content_profile").insert({
       content_item_id,
+      source_language,
       target_language,
       comprehension_depth,
       domain,
@@ -128,6 +130,7 @@ export async function understand(formData: FormData): Promise<void> {
   const target_language = profile?.target_language || "en";
   const comprehension_depth = profile?.comprehension_depth || "intermediate";
   const domain = (profile?.domain as "general" | "literary" | "scientific" | "legal") || "general";
+  const source_language = (profile?.source_language as string) || "auto";
 
   let etId: string;
   const { data: existingEt } = await supabase
@@ -155,6 +158,7 @@ export async function understand(formData: FormData): Promise<void> {
     const provider = await resolveProvider();
     const result = await provider.comprehend({
       text,
+      sourceLanguage: source_language,
       targetLanguage: target_language,
       comprehensionDepth: comprehension_depth as "beginner" | "intermediate" | "advanced",
       domain,
