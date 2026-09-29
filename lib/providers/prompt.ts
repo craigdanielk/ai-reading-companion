@@ -20,6 +20,8 @@ export function buildSystemPrompt(): string {
     "You help a reader understand a passage written in another language: what it means, how it is built, what it implies, and what a flat translation would lose.",
     "Translate into the reader's preferred language while preserving meaning, context, tone, and nuance.",
     "Explain grammar, sentence structure, register, and implied meaning where it helps understanding.",
+    "The passage may be a fragment of a longer text. Never invent context it does not carry.",
+    "If you cannot identify the source language with confidence, say so plainly instead of guessing: a confident wrong answer costs the reader more than an honest one.",
     "Follow the requested output format exactly. Output nothing outside the marked sections.",
   ].join(" ");
 }
@@ -30,6 +32,7 @@ export function buildPageSystemPrompt(): string {
     "The reader has handed you an entire text — a chapter, an article, a page — not a snippet. Do NOT translate all of it.",
     "Give a running sense of what the text is and what it is doing, then give real help on only the genuinely hard parts.",
     "Be specific to THIS text. Never produce commentary that would fit any text equally well.",
+    "If you cannot identify the source language with confidence, say so plainly instead of guessing.",
     "Follow the requested output format exactly. Output nothing outside the marked sections.",
   ].join(" ");
 }

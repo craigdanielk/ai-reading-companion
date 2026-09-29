@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseSections, parsePageSections } from "@/lib/providers/parse";
+import { snapRange } from "@/lib/text/range";
 import { LangBadge } from "@/components/LangBadge";
 
 export interface Result {
@@ -237,8 +238,10 @@ export function Reader({
     const startEl = blockEl(range.startContainer);
     const endEl = blockEl(range.endContainer);
     if (!startEl || !endEl) return;
-    const start = Number(startEl.dataset.start) + offsetWithin(startEl, range.startContainer, range.startOffset);
-    const end = Number(endEl.dataset.start) + offsetWithin(endEl, range.endContainer, range.endOffset);
+    const rawStart =
+      Number(startEl.dataset.start) + offsetWithin(startEl, range.startContainer, range.startOffset);
+    const rawEnd = Number(endEl.dataset.start) + offsetWithin(endEl, range.endContainer, range.endOffset);
+    const { start, end } = snapRange(bodyText, rawStart, rawEnd);
     if (end - start < 3) {
       setPopover(null);
       return;

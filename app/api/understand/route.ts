@@ -7,6 +7,7 @@ import {
   buildPagePrompt,
 } from "@/lib/providers/prompt";
 import { parseSections, parsePageSections } from "@/lib/providers/parse";
+import { snapRange } from "@/lib/text/range";
 import type { ComprehensionDepth } from "@/lib/providers/types";
 import type { DomainCode } from "@/lib/nuance/registry";
 
@@ -40,12 +41,11 @@ export async function POST(req: Request) {
   let text = full;
   let range: { start: number; end: number } | null = null;
   if (mode === "passage" && asked && Number.isFinite(asked.start) && Number.isFinite(asked.end)) {
-    const start = Math.max(0, Math.min(Math.round(asked.start as number), full.length));
-    const end = Math.max(start, Math.min(Math.round(asked.end as number), full.length));
-    const slice = full.slice(start, end).trim();
-    if (slice) {
+    const snapped = snapRange(full, asked.start as number, asked.end as number);
+    const slice = full.slice(snapped.start, snapped.end);
+    if (slice.trim()) {
       text = slice;
-      range = { start, end };
+      range = snapped;
     }
   }
 
