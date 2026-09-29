@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { setContentProfile, updateBodyText } from "@/app/actions";
+import { setContentProfile, updateBodyText, understand } from "@/app/actions";
 
 export default async function ContentItemPage({
   params,
@@ -28,6 +28,21 @@ export default async function ContentItemPage({
     .eq("content_item_id", id)
     .maybeSingle();
 
+  const { data: et } = await supabase
+    .from("extracted_text")
+    .select("id")
+    .eq("content_item_id", id)
+    .maybeSingle();
+  const { data: result } = et
+    ? await supabase
+        .from("ai_result")
+        .select("*")
+        .eq("extracted_text_id", et.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
   return (
     <main className="max-w-2xl mx-auto p-6 space-y-6">
       <Link href="/library" className="text-sm text-neutral-500 hover:underline">&larr; Library</Link>
@@ -43,11 +58,7 @@ export default async function ContentItemPage({
         <h2 className="font-semibold">Comprehension profile</h2>
         <input type="hidden" name="content_item_id" value={item.id} />
         <div className="flex gap-3">
-          <select
-            name="target_language"
-            defaultValue={profile?.target_language || "en"}
-            className="rounded border border-neutral-300 px-3 py-2"
-          >
+          <select name="target_language" defaultValue={profile?.target_language || "en"} className="rounded border border-neutral-300 px-3 py-2">
             <option value="en">English</option>
             <option value="fr">French</option>
             <option value="es">Spanish</option>
@@ -55,24 +66,13 @@ export default async function ContentItemPage({
             <option value="it">Italian</option>
             <option value="ar">Arabic</option>
           </select>
-          <select
-            name="comprehension_depth"
-            defaultValue={profile?.comprehension_depth || "intermediate"}
-            className="rounded border border-neutral-300 px-3 py-2"
-          >
+          <select name="comprehension_depth" defaultValue={profile?.comprehension_depth || "intermediate"} className="rounded border border-neutral-300 px-3 py-2">
             <option value="beginner">Beginner</option>
             <option value="intermediate">Intermediate</option>
             <option value="advanced">Advanced</option>
           </select>
-          <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">
-            Save profile
-          </button>
+          <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Save profile</button>
         </div>
-        {profile && (
-          <p className="text-xs text-neutral-500">
-            Current: {profile.target_language} · {profile.comprehension_depth}
-          </p>
-        )}
       </form>
 
       <form action={updateBodyText} className="space-y-3 rounded border border-neutral-200 p-4">
@@ -85,13 +85,54 @@ export default async function ContentItemPage({
           placeholder="Paste or type the text you want to understand…"
           className="w-full rounded border border-neutral-300 px-3 py-2 font-mono text-sm"
         />
-        <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">
-          Save text
-        </button>
-        <p className="text-xs text-neutral-500">
-          Save the text, then use “Understand” (next) on any passage.
-        </p>
+        <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Save text</button>
       </form>
+
+      <form action={understand} className="rounded border border-neutral-200 p-4">
+        <input type="hidden" name="content_item_id" value={item.id} />
+        <button type="submit" className="rounded bg-neutral-900 text-white px-4 py-2">Understand</button>
+        <p className="text-xs text-neutral-500 mt-1">Comprehend the saved text (translation + explanation).</p>
+      </form>
+
+      {result && (
+        <div className="rounded border border-neutral-200 p-4 space-y-3">
+          <h2 className="font-semibold">Understanding</h2>
+          {result.original && (
+            <div>
+              <h3 className="text-xs font-medium text-neutral-500">Original</h3>
+              <p className="whitespace-pre-wrap text-sm">{result.original}</p>
+            </div>
+          )}
+          {result.understanding && (
+            <div>
+              <h3 className="text-xs font-medium text-neutral-500">Your understanding</h3>
+              <p className="whitespace-pre-wrap text-sm">{result.understanding}</p>
+            </div>
+          )}
+          {Array.isArray(result.terms) && result.terms.length > 0 && (
+            <div>
+              <h3 className="text-xs font-medium text-neutral-500">Important terms</h3>
+              <ul className="list-disc list-inside text-sm">
+                {result.terms.map((t: string, i: number) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {result.key_idea && (
+            <div>
+              <h3 className="text-xs font-medium text-neutral-500">Key idea</h3>
+              <p className="text-sm">{result.key_idea}</p>
+            </div>
+          )}
+          {result.explanation && (
+            <div>
+              <h3 className="text-xs font-medium text-neutral-500">Explanation</h3>
+              <p className="whitespace-pre-wrap text-sm">{result.explanation}</p>
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }
