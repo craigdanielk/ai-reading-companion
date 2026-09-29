@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { devLogin } from "@/app/actions";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -82,6 +83,15 @@ export default function LoginPage() {
           </form>
         )}
         {message && <p className="text-sm text-neutral-600">{message}</p>}
+
+        {!user && (
+          <form action={devLogin} className="border-t border-neutral-200 pt-4 space-y-2">
+            <button type="submit" className="w-full rounded bg-neutral-100 px-4 py-2 text-sm font-medium">
+              Continue as demo user →
+            </button>
+            <p className="text-xs text-neutral-500">One-click demo login for the private beta.</p>
+          </form>
+        )}
       </div>
     </main>
   );

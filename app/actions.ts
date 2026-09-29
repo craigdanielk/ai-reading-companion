@@ -1,9 +1,41 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { resolveProvider } from "@/lib/providers/resolve";
 import { ocrImage } from "@/lib/providers/ocr";
+
+const DEMO_EMAIL = "demo@adel.dev";
+const DEMO_PASSWORD = "AdelDemo2026!Secure";
+
+export async function devLogin(): Promise<void> {
+  const admin = createAdminClient();
+
+  // ensure the demo user exists and is email-confirmed
+  const { error: createErr } = await admin.auth.admin.createUser({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+    email_confirm: true,
+  });
+  if (createErr) {
+    // already exists — confirm it if it isn't yet
+    const { data } = await admin.auth.admin.listUsers();
+    const demo = data.users.find((u) => u.email === DEMO_EMAIL);
+    if (demo && !demo.email_confirmed_at) {
+      await admin.auth.admin.updateUserById(demo.id, { email_confirm: true });
+    }
+  }
+
+  // sign in as the demo user (sets the session cookie via @supabase/ssr)
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: DEMO_EMAIL,
+    password: DEMO_PASSWORD,
+  });
+  if (error) console.error("devLogin:", error.message);
+  redirect("/library");
+}
 
 export async function createContentItem(formData: FormData): Promise<void> {
   const supabase = await createClient();
