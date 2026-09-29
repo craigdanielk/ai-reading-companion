@@ -292,7 +292,11 @@ export async function updateBook(formData: FormData): Promise<void> {
   const id = formData.get("id") as string;
   const title = ((formData.get("title") as string) || "").trim();
   const author = ((formData.get("author") as string) || "").trim() || null;
-  if (title) await supabase.from("book").update({ title, author }).eq("id", id);
+  const description = ((formData.get("description") as string) || "").trim() || null;
+  if (title) {
+    const { error } = await supabase.from("book").update({ title, author, description }).eq("id", id);
+    if (error) console.error("updateBook:", error.message);
+  }
   redirect("/book/" + id);
 }
 
