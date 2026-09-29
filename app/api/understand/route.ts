@@ -98,9 +98,10 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error("stream read error:", (e as Error).message);
       }
-      controller.close();
 
-      // persist the completed comprehension
+      // Persist BEFORE closing the response: once the stream is closed Vercel may
+      // freeze the function and these writes never land (comprehension would
+      // vanish on reload).
       try {
         const parsed = parseSections(full);
         if (!parsed.understanding) return;
@@ -113,15 +114,16 @@ export async function POST(req: Request) {
           .maybeSingle();
         if (et) etId = et.id;
         else {
-          const { data: made } = await supabase
+          const { data: made, error: etErr } = await supabase
             .from("extracted_text")
             .insert({ content_item_id: contentItemId, raw_text: item.body_text, corrected_text: item.body_text })
             .select("id")
             .single();
+          if (etErr) console.error("extracted_text insert:", etErr.message);
           etId = made?.id ?? null;
         }
         if (etId) {
-          await supabase.from("ai_result").insert({
+          const { error: rErr } = await supabase.from("ai_result").insert({
             extracted_text_id: etId,
             original: parsed.original || item.body_text,
             understanding: parsed.understanding,
@@ -129,6 +131,7 @@ export async function POST(req: Request) {
             key_idea: parsed.keyIdea || "",
             explanation: parsed.explanation || "",
           });
+          if (rErr) console.error("ai_result insert:", rErr.message);
         }
 
         const now = new Date().toISOString();
@@ -147,6 +150,8 @@ export async function POST(req: Request) {
             .insert({ user_id: auth.user.id, content_item_id: contentItemId, counters, last_position: now });
       } catch (e) {
         console.error("persist error:", (e as Error).message);
+      } finally {
+        controller.close();
       }
     },
   });
