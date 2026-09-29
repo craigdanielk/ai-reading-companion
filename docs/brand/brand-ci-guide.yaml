@@ -4,7 +4,7 @@ tier: core
 meta:
   brand_name: AI Reading Companion
   guide_title: AI Reading Companion — Brand & Identity Guide
-  version: "1.0"
+  version: "1.1"
   date: 2026-09-29
   owner: Craig (adel tenant)
   classification: Internal
@@ -142,6 +142,50 @@ imagery:
     - No flags to represent languages — languages are not countries.
     - No text baked into images.
   images: []
+  covers:
+    principle: >-
+      Covers are typeset, never photographed. Real cover art is copyrighted,
+      hotlinking it is fragile and legally murky, and a generated image would make
+      every book look like the same product. A clothbound-edition cover is always
+      present, always legible, and unmistakably ours.
+    system:
+      - Cloth ground drawn deterministically from the title (FNV-1a — a weak hash clusters neighbouring titles onto one colour and the shelf goes monotone).
+      - Twelve cloths, seven light and five dark, so a shelf stays light and varied as it grows.
+      - Title set in Fraunces semibold, clamped to three lines. Author beneath, above a hairline rule.
+      - A 3px spine shadow on the left edge reads the surface as a book, not a card.
+      - Aspect 2:3, radius 4px. Uploaded cover art, when a reader supplies their own edition, overrides the cloth entirely.
+    deviation: >-
+      Covers use a 4px radius rather than the 16px card radius. A 16px corner
+      reads as an app card; a 4px corner reads as a book. The rounded-square motif
+      governs cards, chips and avatars, not the object on the shelf.
+
+patterns:
+  marginalia:
+    intent: >-
+      The AI is a quiet guide beside the reader, never a dashboard. Understanding
+      arrives in the margin, beside the paragraph it belongs to, the way a gloss
+      sits in an annotated or bilingual edition.
+    rules:
+      - The default state of a text is the text alone. No panel, no headers, nothing else on screen.
+      - Understanding a paragraph places its gloss in the margin column, aligned to that paragraph.
+      - On mobile the gloss stacks under its paragraph, indented behind a hairline rule.
+      - The original is never repeated inside the gloss — it stays in place, highlighted, so original and rendering read as facing pages.
+      - The rendering is set in Fraunces at 16–17px. Hard words follow as a quiet list under a rule. Reasoning stays folded behind a "why" disclosure.
+      - No ALL-CAPS section scaffolding. Labels are sentence case and small.
+    constraint: >-
+      A margin note taller than its paragraph leaves a gap in the reading column.
+      That is acceptable for paragraph glosses. It is NOT acceptable for the
+      whole-text note, which closes the text instead and scrolls into view.
+  language_badges:
+    rule: >-
+      A language is shown as a circular badge carrying the letter that language
+      owns — A · Ç · Ñ · ع · ß · あ — tinted per language. Never a flag: Spanish is
+      twenty countries and Arabic twenty-two, so a flag is a political claim, not a
+      language label.
+    note: >-
+      Fraunces and Inter carry no Arabic or CJK coverage, so ع and あ load a
+      two-glyph Noto subset in a separate font request — the text= parameter
+      applies to every family in a request and would strip the Latin faces bare.
 
 layout:
   grid: 4-column mobile (16px gutters) → 12-column desktop; reading column capped at 680px.
@@ -162,7 +206,10 @@ layout:
   elements:
     - {name: Rounded square, text: The mark's rounded square recurs as the card, chip and avatar shape.}
     - {name: Insight dot, text: A single accent dot marks the "key idea" in every result.}
-  motion: Subtle and springy — 150–250ms ease-out on enter, 120ms on exit. Respect prefers-reduced-motion.
+  motion: >-
+    Subtle and springy — 150–250ms ease-out on enter, 120ms on exit. Respect
+    prefers-reduced-motion. Implemented: gloss entrance (220ms cubic-bezier
+    (0.22,0.61,0.36,1), 4px rise) and cover lift on hover (200ms).
 
 voice:
   attributes:
@@ -204,8 +251,11 @@ appendix:
     - {item: "Licensed imagery set not selected", owner: Design}
     - {item: "Print colour values (CMYK/PMS) not derived — digital-first for MVP", owner: Design}
     - {item: "Contrast ratios to be re-verified against final tokens at build time", owner: Engineering}
+    - {item: "Notebook view — saved glosses and highlights collected per book, so they stop living only inline", owner: Design}
+    - {item: "Cloth palette contrast to be measured against WCAG before launch", owner: Engineering}
   version_history:
     - {version: "1.0", date: 2026-09-29, change: "Initial authored identity for the MVP (greenfield — authored, not harvested)."}
+    - {version: "1.1", date: 2026-09-29, change: "Client direction folded in: Deep + Simple + Connected. Added the marginalia pattern (gloss in the margin, not a panel), the typeset cloth cover system, the script-letter language badge rule, and the implemented motion values. Recorded the 4px cover-radius deviation from the rounded-square motif."}
   approvals:
     - {role: Owner, name: Craig, date: 2026-09-29}
     - {role: Client, name: Adel Necib, date: ""}
