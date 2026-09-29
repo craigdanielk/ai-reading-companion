@@ -17,7 +17,8 @@ const PROVIDERS: Record<string, { baseUrl: string; model: string }> = {
 function platformKey(provider: string): string | undefined {
   switch (provider) {
     case "openai":
-      return process.env.OPENAI_API_KEY;
+      // accept both spellings (OPENAI_API_KEY canonical; OPEN_AI_API_KEY tolerated)
+      return process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
     case "deepseek":
       return process.env.DEEPSEEK_API_KEY;
     case "mistral":
