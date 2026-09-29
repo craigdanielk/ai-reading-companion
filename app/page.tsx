@@ -6,14 +6,17 @@ export default function Home() {
     <main className="mx-auto w-full max-w-3xl px-4 py-14 sm:py-24">
       <div className="flex flex-col items-center text-center">
         <Image
-          src="/brand/svg/arc-lockup.svg"
-          alt="AI Reading Companion"
-          width={268}
-          height={48}
+          src="/brand/svg/arc-mark.svg"
+          alt=""
+          width={64}
+          height={64}
           priority
-          className="h-11 w-auto"
+          className="h-16 w-16"
         />
-        <h1 className="mt-8 font-display text-[28px] font-semibold leading-tight sm:text-[34px]">
+        <p className="mt-4 font-display text-lg font-semibold tracking-tight">
+          AI Reading Companion
+        </p>
+        <h1 className="mt-6 font-display text-[28px] font-semibold leading-tight sm:text-[34px]">
           Read anything. Understand everything.
         </h1>
         <p className="mt-4 max-w-md text-[15px] text-ink-soft">
