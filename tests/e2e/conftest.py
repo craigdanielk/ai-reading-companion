@@ -1,6 +1,6 @@
 import pytest
 from playwright.sync_api import sync_playwright
-from helpers import BASE_URL
+from helpers import BASE_URL, cleanup_created
 
 @pytest.fixture(scope="session")
 def browser():
@@ -20,4 +20,7 @@ def page(browser):
     pg.wait_for_url("**/library", timeout=30000)
     pg._errors = errors
     yield pg
-    ctx.close()
+    try:
+        cleanup_created(pg)
+    finally:
+        ctx.close()
