@@ -429,6 +429,7 @@ export async function saveReadingAppearance(formData: FormData): Promise<void> {
       reading_size: pick("reading_size", ["small", "medium", "large", "xl"], "medium"),
       reading_theme: pick("reading_theme", ["paper", "sepia", "night"], "paper"),
       reading_measure: pick("reading_measure", ["narrow", "normal", "wide"], "normal"),
+      reading_paged: formData.get("reading_paged") === "scroll" ? false : true,
     },
     { onConflict: "user_id" }
   );

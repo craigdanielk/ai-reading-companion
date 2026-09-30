@@ -35,6 +35,7 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
     size: (prefs?.reading_size as "small" | "medium" | "large" | "xl") || "medium",
     theme: (prefs?.reading_theme as "paper" | "sepia" | "night") || "paper",
     measure: (prefs?.reading_measure as "narrow" | "normal" | "wide") || "normal",
+    paged: prefs?.reading_paged !== false,
   };
   const lastFraction = (usage?.counters as { lastFraction?: number } | null)?.lastFraction ?? null;
 

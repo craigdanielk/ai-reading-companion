@@ -93,6 +93,11 @@ html { -webkit-text-size-adjust: 100%; }
 /* Reading text size and leading are preferences, not fixed styles. */
 .reader-text { font-size: var(--reading-size, 18px); line-height: var(--reading-leading, 1.75); }
 
+/* Paged reading: content flows into fixed-height columns, one column per page.
+   A paragraph and its margin gloss are one row, and a row never splits. */
+.reader-flow { column-fill: auto; }
+.reader-flow .reader-row { break-inside: avoid; page-break-inside: avoid; }
+
 /* The inner measure grows with the text column; on a phone it stays one column. */
 .reader-inner { max-width: 42rem; }
 @media (min-width: 64rem) {
