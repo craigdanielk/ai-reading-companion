@@ -4,7 +4,7 @@ tier: core
 meta:
   brand_name: Jeralis
   guide_title: Jeralis — Brand & Identity Guide
-  version: "1.4"
+  version: "1.5"
   date: 2026-09-29
   owner: Craig (adel tenant)
   classification: Internal
@@ -192,6 +192,25 @@ patterns:
       two-glyph Noto subset in a separate font request — the text= parameter
       applies to every family in a request and would strip the Latin faces bare.
 
+liquid_glass:
+  source: Apple Liquid Glass (WWDC 2025). Full plan in docs/design/liquid-glass-upgrade.md
+  the_one_rule: >-
+    Glass belongs ONLY to the navigation/control layer floating above content.
+    Never on content itself — no glass text, glosses, book covers, cards or lists.
+    Glass-on-glass is forbidden.
+  variants:
+    - {name: glass, use: "text-bearing floating surfaces (the reading sheet)", fill: "86% paper", blur: "22px saturate(1.7)"}
+    - {name: glass-clear, use: "icon-only controls (the Aa button)", fill: "64% paper", blur: "18px saturate(1.8)"}
+    - {name: glass-bar, use: "full-width chrome with a single bottom edge (mobile header, paged bars)", fill: "88% paper"}
+  specular: Inset 1px top highlight; near-absent in the night theme, where the cast shadow deepens instead.
+  interaction: glass-press scales to 0.96 over 170ms; glass-in rises 8px over 220ms. Both respect prefers-reduced-motion.
+  fallback: Without backdrop-filter support the fill goes near-opaque rather than rendering as a wash.
+  applied: Reader sticky toolbar, Aa control, reading sheet, Understand-this popover, paged top and page bars, mobile app header.
+  not_applied: Reading text, margin glosses, book covers, shelf cards, notebook entries.
+  radii: >-
+    Concentric scale — each step derived so nested corners stay parallel:
+    --radius-1 10px, --radius-2 16px, --radius-3 22px, --radius-glass 20px,
+    --radius-inner 12px (glass radius minus its gap).
 layout:
   grid: 4-column mobile (16px gutters) → 12-column desktop; reading column capped at 680px.
   spacing:
@@ -264,6 +283,7 @@ appendix:
     - {version: "1.2", date: 2026-09-29, change: "Shipped the per-book notebook (saved glosses, deep-linking back to the paragraph). Measured cloth palette contrast against WCAG 2.1."}
     - {version: "1.3", date: 2026-09-29, change: "Product name is Jeralis (client decision). Renamed across app copy, metadata, logo masters (arc-* -> jeralis-*) and this guide. Logo lockup reflowed for the shorter wordmark."}
     - {version: "1.4", date: 2026-09-29, change: "E-reader surface: paper/sepia/night reading themes, typeface/size/measure controls, progress and position memory. Themes recorded under color.notes."}
+    - {version: "1.5", date: 2026-09-30, change: "Liquid Glass phase 1 built: glass control layer, concentric radii, press motion. Documented the one rule plus the applied/not-applied inventory. Paginated reading shipped."}
   approvals:
     - {role: Owner, name: Craig, date: 2026-09-29}
     - {role: Client, name: Adel Necib, date: ""}
