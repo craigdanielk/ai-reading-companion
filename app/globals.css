@@ -84,7 +84,9 @@ html { -webkit-text-size-adjust: 100%; }
 @media (min-width: 64rem) {
   .reader-row {
     display: grid;
-    grid-template-columns: minmax(0, var(--text-col, 42rem)) 19rem;
+    /* Both tracks flex down: a paged column is only as wide as the viewport
+       allows, and the gloss must never be clipped off the page. */
+    grid-template-columns: minmax(0, var(--text-col, 42rem)) minmax(0, 19rem);
     column-gap: 3.5rem;
     align-items: start;
   }
