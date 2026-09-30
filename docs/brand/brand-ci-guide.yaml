@@ -4,7 +4,7 @@ tier: core
 meta:
   brand_name: Jeralis
   guide_title: Jeralis — Brand & Identity Guide
-  version: "1.3"
+  version: "1.4"
   date: 2026-09-29
   owner: Craig (adel tenant)
   classification: Internal
@@ -112,6 +112,11 @@ color:
     - "Measured (WCAG 2.1): Ink/Paper 16.31:1 (AAA) · Ink soft/Paper 8.02:1 (AAA) · Ink/Sun 9.13:1 (AAA) · White/Ember 600 5.16:1 (AA) · Ember 600/Paper 4.95:1 (AA) · Iris/Paper 4.75:1 (AA)."
     - Sea (3.15:1) and Muted (3.95:1) pass for LARGE text only — never use them for body copy or small labels.
     - Every interactive state must clear 3:1 against its background (non-text UI).
+    - >-
+      The e-reader surface adds two reading themes, derived from the paper tokens
+      and applied to the reading surface only (the app chrome stays paper):
+      Sepia — ink #3B2E1E, paper #F2E7CF, line #D9C7A8. Night — ink #E7E3DB,
+      paper #1A1815, line #2E2B27.
 
 typography:
   faces:
@@ -258,6 +263,7 @@ appendix:
     - {version: "1.1", date: 2026-09-29, change: "Client direction folded in: Deep + Simple + Connected. Added the marginalia pattern (gloss in the margin, not a panel), the typeset cloth cover system, the script-letter language badge rule, and the implemented motion values. Recorded the 4px cover-radius deviation from the rounded-square motif."}
     - {version: "1.2", date: 2026-09-29, change: "Shipped the per-book notebook (saved glosses, deep-linking back to the paragraph). Measured cloth palette contrast against WCAG 2.1."}
     - {version: "1.3", date: 2026-09-29, change: "Product name is Jeralis (client decision). Renamed across app copy, metadata, logo masters (arc-* -> jeralis-*) and this guide. Logo lockup reflowed for the shorter wordmark."}
+    - {version: "1.4", date: 2026-09-29, change: "E-reader surface: paper/sepia/night reading themes, typeface/size/measure controls, progress and position memory. Themes recorded under color.notes."}
   approvals:
     - {role: Owner, name: Craig, date: 2026-09-29}
     - {role: Client, name: Adel Necib, date: ""}
