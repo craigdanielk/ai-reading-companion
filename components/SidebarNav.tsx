@@ -55,8 +55,8 @@ export function SidebarNav({
         ))}
 
         <div className="mt-4">
-          <Row href="/notes" active={pathname.startsWith("/notes")}>
-            <span>Notes</span>
+          <Row href="/saved" active={pathname.startsWith("/saved")}>
+            <span>Saved</span>
           </Row>
         </div>
       </nav>

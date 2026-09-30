@@ -104,7 +104,7 @@ export default async function BookPage({
             href={"/book/" + book.id + "/notes"}
             className={(noteCount || 0) > 0 ? "hover:text-ink" : "opacity-60 hover:text-ink"}
           >
-            Notes{(noteCount || 0) > 0 ? " (" + noteCount + ")" : ""}
+            Saved{(noteCount || 0) > 0 ? " (" + noteCount + ")" : ""}
           </Link>
 
           {current && (

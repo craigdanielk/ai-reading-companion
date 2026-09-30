@@ -16,9 +16,9 @@ export function MobileTabs() {
         <span className="font-display text-[15px] leading-none">&#9633;</span>
         Library
       </Link>
-      <Link href="/notes" className={TAB + (on("/notes") ? " text-ink" : " text-muted")}>
+      <Link href="/saved" className={TAB + (on("/saved") ? " text-ink" : " text-muted")}>
         <span className="font-display text-[15px] leading-none">&#9998;</span>
-        Notes
+        Saved
       </Link>
 
       <div className="flex flex-1 items-center justify-center">

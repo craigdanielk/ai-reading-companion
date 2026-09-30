@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadNotebookAll } from "@/lib/notebook";
 import { BookCover } from "@/components/BookCover";
 
-export const metadata = { title: "Notes" };
+export const metadata = { title: "Saved" };
 
 export default async function NotesPage() {
   const supabase = await createClient();
@@ -22,7 +22,7 @@ export default async function NotesPage() {
   return (
     <main className="mx-auto w-full max-w-[44rem] px-5 py-8 lg:py-12">
       <div className="flex items-baseline justify-between gap-3">
-        <h1 className="font-display text-[26px] font-semibold leading-tight">Notes</h1>
+        <h1 className="font-display text-[26px] font-semibold leading-tight">Saved</h1>
         {entries.length > 0 && (
           <p className="text-[12px] text-muted">
             {entries.length} {entries.length === 1 ? "gloss" : "glosses"}
