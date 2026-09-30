@@ -4,7 +4,7 @@ tier: core
 meta:
   brand_name: AI Reading Companion
   guide_title: AI Reading Companion — Brand & Identity Guide
-  version: "1.1"
+  version: "1.2"
   date: 2026-09-29
   owner: Craig (adel tenant)
   classification: Internal
@@ -252,10 +252,11 @@ appendix:
     - {item: "Print colour values (CMYK/PMS) not derived — digital-first for MVP", owner: Design}
     - {item: "Contrast ratios to be re-verified against final tokens at build time", owner: Engineering}
     - {item: "Notebook view — saved glosses and highlights collected per book, so they stop living only inline", owner: Design}
-    - {item: "Cloth palette contrast to be measured against WCAG before launch", owner: Engineering}
+    - {item: "Cloth palette contrast - MEASURED (WCAG 2.1): 11 of 12 cloths AAA; terracotta 5.43:1 AA; worst case clears AA for cover text.", owner: Engineering}
   version_history:
     - {version: "1.0", date: 2026-09-29, change: "Initial authored identity for the MVP (greenfield — authored, not harvested)."}
     - {version: "1.1", date: 2026-09-29, change: "Client direction folded in: Deep + Simple + Connected. Added the marginalia pattern (gloss in the margin, not a panel), the typeset cloth cover system, the script-letter language badge rule, and the implemented motion values. Recorded the 4px cover-radius deviation from the rounded-square motif."}
+    - {version: "1.2", date: 2026-09-29, change: "Shipped the per-book notebook (saved glosses, deep-linking back to the paragraph). Measured cloth palette contrast against WCAG 2.1."}
   approvals:
     - {role: Owner, name: Craig, date: 2026-09-29}
     - {role: Client, name: Adel Necib, date: ""}
