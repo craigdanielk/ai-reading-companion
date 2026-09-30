@@ -320,11 +320,29 @@ export async function updateBook(formData: FormData): Promise<void> {
   redirect("/book/" + id);
 }
 
+// Deleting a text means deleting the text: its sections, what was understood in
+// them, and the source files. Leaving sections "unfiled" left ghosts, and
+// leaving the files behind orphaned storage that nothing would ever collect.
 export async function deleteBook(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) redirect("/login");
   const id = formData.get("id") as string;
+
+  const { data: items } = await supabase
+    .from("content_item")
+    .select("storage_ref")
+    .eq("book_id", id);
+  const paths = (items ?? [])
+    .map((i) => i.storage_ref as string | null)
+    .filter((p): p is string => Boolean(p));
+  if (paths.length) {
+    const { error } = await supabase.storage.from("content").remove(paths);
+    if (error) console.error("deleteBook storage:", error.message);
+  }
+
+  // Sections cascade to profiles, selections, extracted text, results and notes.
+  await supabase.from("content_item").delete().eq("book_id", id);
   await supabase.from("book").delete().eq("id", id);
   redirect("/library");
 }

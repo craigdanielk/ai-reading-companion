@@ -221,7 +221,7 @@ export default async function BookPage({
                   <form action={deleteBook} className="mt-2">
                     <input type="hidden" name="id" value={book.id} />
                     <button type="submit" className="text-[11px] text-ember-600 hover:underline">
-                      Delete this text (its passages stay, unfiled)
+                      Delete this text and everything read in it
                     </button>
                   </form>
                 </details>
