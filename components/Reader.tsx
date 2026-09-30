@@ -600,7 +600,18 @@ export function Reader({
   const settingsPanel = settingsOpen ? (
     <>
       <button className="fixed inset-0 z-30 cursor-default" onClick={() => setSettingsOpen(false)} aria-label="Close" />
-      <div className="glass fixed right-3 top-14 z-40 w-[min(22rem,calc(100vw-1.5rem))] rounded-glass p-4 lg:right-6">
+      {/* Anchored to the bottom so it never covers the control that opens it. */}
+      <div className="glass glass-in fixed inset-x-3 bottom-3 z-40 rounded-glass p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[22rem]">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="font-display text-[13px] font-semibold text-ink">Reading</span>
+          <button
+            onClick={() => setSettingsOpen(false)}
+            className="text-[12px] text-muted transition-colors hover:text-ink"
+            aria-label="Close reading settings"
+          >
+            Close
+          </button>
+        </div>
         <AppearancePanel appearance={appearance} onChange={applyAppearance} />
       </div>
     </>
