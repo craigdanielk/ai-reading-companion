@@ -198,7 +198,6 @@ export function Reader({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLDivElement | null>(null);
   const abort = useRef<AbortController | null>(null);
-  const autoFired = useRef(false);
   const restored = useRef(false);
   const runSeq = useRef(0);
   const beaconTimer = useRef<number | undefined>(undefined);
@@ -536,13 +535,6 @@ export function Reader({
     if (Math.abs(dx) > 45) turn(dx < 0 ? 1 : -1);
   }
 
-  useEffect(() => {
-    if (autoFired.current || !canRun || pageNote || blocks.length !== 1) return;
-    autoFired.current = true;
-    void run({ start: blocks[0].start, end: blocks[0].end }, "passage");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canRun, pageNote, blocks]);
-
   const rows = (
     <>
       {blocks.length === 0 && <p className="text-[14px] text-muted">This text is empty.</p>}
@@ -620,8 +612,10 @@ export function Reader({
   const hintAndError = (
     <>
       {!hasAny && !running && canRun && (
-        <p className="mt-4 text-[13px] text-muted">
-          Tap a paragraph to read it in {targetName}. Drag across a few words to read only those.
+        <p className="mt-4 max-w-[44ch] text-[13px] leading-relaxed text-muted">
+          Nothing is translated until you ask. Select a <span className="text-ink-soft">paragraph</span>,
+          drag across a <span className="text-ink-soft">word</span> or phrase, or open the{" "}
+          <span className="text-ink-soft">whole text</span> — each one reads into {targetName}.
         </p>
       )}
       {error && (
