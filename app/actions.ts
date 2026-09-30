@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { resolveProvider } from "@/lib/providers/resolve";
 import { ocrImage } from "@/lib/providers/ocr";
+import { findKind, DEFAULT_KIND, TEXT_KINDS } from "@/lib/text-kinds";
 
 const DEMO_EMAIL = "demo@adel.dev";
 const DEMO_PASSWORD = "AdelDemo2026!Secure";
@@ -306,8 +307,13 @@ export async function updateBook(formData: FormData): Promise<void> {
   const title = ((formData.get("title") as string) || "").trim();
   const author = ((formData.get("author") as string) || "").trim() || null;
   const description = ((formData.get("description") as string) || "").trim() || null;
+  const askedKind = (formData.get("kind") as string) || "";
+  const kind = TEXT_KINDS.some((k) => k.code === askedKind) ? askedKind : null;
   if (title) {
-    const { error } = await supabase.from("book").update({ title, author, description }).eq("id", id);
+    const { error } = await supabase
+      .from("book")
+      .update(kind ? { title, author, description, kind } : { title, author, description })
+      .eq("id", id);
     if (error) console.error("updateBook:", error.message);
   }
   redirect("/book/" + id);
@@ -342,13 +348,17 @@ export async function createText(formData: FormData): Promise<void> {
   const body_text = ((formData.get("body_text") as string) || "").trim();
   if (!body_text) redirect(givenBook ? "/book/" + givenBook : "/library");
 
+  const askedKind = (formData.get("kind") as string) || DEFAULT_KIND;
+  const kind = (TEXT_KINDS.some((k) => k.code === askedKind) ? askedKind : DEFAULT_KIND) as string;
+
   const title = titleFrom(body_text);
   let bookId = givenBook;
+  let bookKind = kind;
 
   if (!bookId) {
     const { data: book, error: bookErr } = await supabase
       .from("book")
-      .insert({ user_id: data.user.id, title })
+      .insert({ user_id: data.user.id, title, kind })
       .select("id")
       .single();
     if (bookErr || !book) {
@@ -356,6 +366,10 @@ export async function createText(formData: FormData): Promise<void> {
       redirect("/library");
     }
     bookId = book.id;
+  } else {
+    // A section added to an existing text inherits that text's kind.
+    const { data: parent } = await supabase.from("book").select("kind").eq("id", bookId).single();
+    bookKind = (parent?.kind as string) || kind;
   }
 
   const { data: existing } = await supabase
@@ -379,11 +393,16 @@ export async function createText(formData: FormData): Promise<void> {
     .select("*")
     .eq("user_id", data.user.id)
     .maybeSingle();
+  // The form seeds the register: a paper is read scientifically unless the reader
+  // has said otherwise by choosing a default domain themselves.
+  const kindDomain = findKind(bookKind).domain;
+  const domain = kindDomain !== "general" ? kindDomain : prefs?.default_domain || "general";
+
   const { error: profileErr } = await supabase.from("content_profile").insert({
     content_item_id: item.id,
     source_language: prefs?.default_source_language || "auto",
     target_language: prefs?.default_target_language || "en",
-    domain: prefs?.default_domain || "general",
+    domain,
     comprehension_depth: prefs?.default_depth || "intermediate",
   });
   if (profileErr) console.error("createText profile:", profileErr.message);

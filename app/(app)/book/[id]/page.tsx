@@ -6,7 +6,9 @@ import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { Compose } from "@/components/Compose";
 import { LangPicker } from "@/components/LangPicker";
+import { KindBadge } from "@/components/KindBadge";
 import { DOMAINS } from "@/lib/nuance/registry";
+import { TEXT_KINDS } from "@/lib/text-kinds";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -80,6 +82,7 @@ export default async function BookPage({
           <Link href="/library" className="hover:text-ink">
             &larr; Library
           </Link>
+          <KindBadge kind={book.kind} size="sm" />
           {multi && <span className="truncate text-ink-soft">{book.title}</span>}
 
           <Link
@@ -175,6 +178,20 @@ export default async function BookPage({
                       placeholder="Author"
                       className="w-full rounded-input border border-line bg-paper px-3 py-2 text-[14px] text-ink"
                     />
+                    <label className="block text-[11px] tracking-wide">
+                      KIND
+                      <select
+                        name="kind"
+                        defaultValue={book.kind || "book"}
+                        className="mt-1 w-full rounded-input border border-line bg-paper px-2 py-2 text-[13px] text-ink"
+                      >
+                        {TEXT_KINDS.map((k) => (
+                          <option key={k.code} value={k.code}>
+                            {k.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     <textarea
                       name="description"
                       defaultValue={book.description || ""}
