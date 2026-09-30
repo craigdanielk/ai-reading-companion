@@ -6,7 +6,7 @@ def test_notes_page_renders_and_deep_links(page):
     bid = href.replace("/book/", "")
     page.goto(BASE_URL + "/book/" + bid + "/notes")
     page.wait_for_timeout(900)
-    assert "Notes" in page.inner_text("body")
+    assert "Saved" in page.inner_text("body")
     links = page.query_selector_all("a[href*='&at=']")
     if links:
         target = links[0].get_attribute("href")

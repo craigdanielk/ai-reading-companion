@@ -1,5 +1,5 @@
 import time
-from helpers import BASE_URL, settle, first_book_href
+from helpers import BASE_URL, settle, first_book_href, create_text
 
 TEXT = (
     "Il a vendu la meche, mais personne ne l'a remarque. Le renard lui dit: "
@@ -33,10 +33,8 @@ def test_appearance_themes_apply_and_persist(page):
 def test_paragraph_tap_produces_gloss(page):
     page.goto(BASE_URL + "/library")
     page.wait_for_timeout(800)
-    page.fill('textarea[name="body_text"]', TEXT)
-    page.get_by_role("button", name="Understand").click()
-    page.wait_for_url("**/book/**", timeout=45000)
-    page.wait_for_timeout(1000)
+    create_text(page, TEXT)
+    page.wait_for_timeout(1200)
     page.eval_on_selector_all("[data-start]", "els => els[0].click()")
     settle(page)
     # poll for the deterministic signals instead of sleeping: the tapped paragraph
