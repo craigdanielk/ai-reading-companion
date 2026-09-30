@@ -23,10 +23,20 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
   const { data: item } = await supabase.from("content_item").select("*").eq("id", id).single();
   if (!item) notFound();
 
-  const [{ data: profile }, reader] = await Promise.all([
+  const [{ data: profile }, reader, { data: prefs }, { data: usage }] = await Promise.all([
     supabase.from("content_profile").select("*").eq("content_item_id", id).maybeSingle(),
     loadReaderData(supabase, id),
+    supabase.from("user_preference").select("*").eq("user_id", auth.user.id).maybeSingle(),
+    supabase.from("usage").select("counters").eq("content_item_id", id).maybeSingle(),
   ]);
+
+  const reading = {
+    font: (prefs?.reading_font as "serif" | "sans") || "serif",
+    size: (prefs?.reading_size as "small" | "medium" | "large" | "xl") || "medium",
+    theme: (prefs?.reading_theme as "paper" | "sepia" | "night") || "paper",
+    measure: (prefs?.reading_measure as "narrow" | "normal" | "wide") || "normal",
+  };
+  const lastFraction = (usage?.counters as { lastFraction?: number } | null)?.lastFraction ?? null;
 
   return (
     <div className="flex min-h-full flex-col lg:h-full lg:min-h-0">
@@ -119,6 +129,8 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
           targetLanguage={profile?.target_language || "en"}
           domain={profile?.domain || "general"}
           depth={profile?.comprehension_depth || "intermediate"}
+          reading={reading}
+          initialFraction={lastFraction}
         />
       </div>
     </div>

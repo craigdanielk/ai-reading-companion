@@ -1,4 +1,4 @@
-# AI Reading Companion — Brand CI Guide (v1.0)
+# Jeralis — Brand CI Guide (v1.0)
 
 Canonical machine-readable source: **docs/brand/brand-ci-guide.yaml** (contract: brand-ci-guide-v1).
 This file is the human-readable summary. Authored 2026-09-29 (greenfield — authored, not harvested).
@@ -64,8 +64,8 @@ Scale: 32 / 24 / 18 / 16 / 14 / 12px. Never Fraunces below 18px. Reading text ne
 ## Logo
 
 A rounded square holding three text lines and an insight dot — a page becoming
-understanding. Vector masters in public/brand/svg/: arc-lockup, arc-mark,
-arc-mark-inverse, arc-mark-mono. Clear space = half the mark height. Minimum 24px (mark) /
+understanding. Vector masters in public/brand/svg/: jeralis-lockup, jeralis-mark,
+jeralis-mark-inverse, jeralis-mark-mono. Clear space = half the mark height. Minimum 24px (mark) /
 96px (lockup). No stretch, rotation, recolour, shadow or crop.
 
 ## Voice

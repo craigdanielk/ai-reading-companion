@@ -6,7 +6,7 @@ export default function Home() {
     <main className="mx-auto w-full max-w-3xl px-4 py-14 sm:py-24">
       <div className="flex flex-col items-center text-center">
         <Image
-          src="/brand/svg/arc-mark.svg"
+          src="/brand/svg/jeralis-mark.svg"
           alt=""
           width={64}
           height={64}
@@ -14,7 +14,7 @@ export default function Home() {
           className="h-16 w-16"
         />
         <p className="mt-4 font-display text-lg font-semibold tracking-tight">
-          AI Reading Companion
+          Jeralis
         </p>
         <h1 className="mt-6 font-display text-[28px] font-semibold leading-tight sm:text-[34px]">
           Read anything. Understand everything.

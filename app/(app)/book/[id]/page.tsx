@@ -41,7 +41,7 @@ export default async function BookPage({
   const list = sections ?? [];
   const current = list.find((x) => x.id === s) ?? list[0] ?? null;
 
-  const [{ data: profile }, reader, noteCount] = await Promise.all([
+  const [{ data: profile }, reader, noteCount, { data: prefs }, { data: usage }] = await Promise.all([
     current
       ? supabase.from("content_profile").select("*").eq("content_item_id", current.id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -55,7 +55,19 @@ export default async function BookPage({
           .in("content_item_id", list.map((x) => x.id))
           .then((r) => r.count ?? 0)
       : Promise.resolve(0),
+    supabase.from("user_preference").select("*").eq("user_id", auth.user.id).maybeSingle(),
+    current
+      ? supabase.from("usage").select("counters").eq("content_item_id", current.id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const reading = {
+    font: (prefs?.reading_font as "serif" | "sans") || "serif",
+    size: (prefs?.reading_size as "small" | "medium" | "large" | "xl") || "medium",
+    theme: (prefs?.reading_theme as "paper" | "sepia" | "night") || "paper",
+    measure: (prefs?.reading_measure as "narrow" | "normal" | "wide") || "normal",
+  };
+  const lastFraction = (usage?.counters as { lastFraction?: number } | null)?.lastFraction ?? null;
 
   const multi = list.length > 1;
   const readerTitle = multi ? current?.title || book.title : book.title;
@@ -219,6 +231,8 @@ export default async function BookPage({
             domain={profile?.domain || "general"}
             depth={profile?.comprehension_depth || "intermediate"}
             focusSelection={at || null}
+            reading={reading}
+            initialFraction={lastFraction}
           />
         ) : (
           <div className="mx-auto w-full max-w-2xl px-5 py-8">

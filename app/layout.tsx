@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "AI Reading Companion", template: "%s · AI Reading Companion" },
+  title: { default: "Jeralis", template: "%s · Jeralis" },
   description: "Read anything. Understand everything.",
 };
 

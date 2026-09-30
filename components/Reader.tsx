@@ -6,6 +6,7 @@ import { parseSections, parsePageSections } from "@/lib/providers/parse";
 import { snapRange } from "@/lib/text/range";
 import { findLanguage } from "@/lib/nuance/registry";
 import { LangBadge } from "@/components/LangBadge";
+import { saveReadingAppearance } from "@/app/actions";
 
 export interface Result {
   id: string | null;
@@ -26,6 +27,13 @@ export interface SelectionRow {
   result: Result | null;
 }
 
+export interface ReadingAppearance {
+  font: "serif" | "sans";
+  size: "small" | "medium" | "large" | "xl";
+  theme: "paper" | "sepia" | "night";
+  measure: "narrow" | "normal" | "wide";
+}
+
 interface Block {
   text: string;
   start: number;
@@ -37,14 +45,23 @@ interface Range {
   end: number;
 }
 
-// Highlights understood in this session live outside React, keyed by section.
-// The server is the long-term record, but its round trip lands after the stream
-// and can arrive before the row is readable — which would blink the highlight off
-// a reader who just watched it appear.
 const sessionHighlights = new Map<string, Range[]>();
 
-// Paragraph is the unit: it is what a tap can hit reliably on a phone, what a
-// highlight can own, and what the model can answer in a second or two.
+const SIZE = {
+  small: { size: "18px", leading: "1.8" },
+  medium: { size: "19px", leading: "1.75" },
+  large: { size: "20px", leading: "1.7" },
+  xl: { size: "22px", leading: "1.65" },
+} as const;
+
+const TEXT_COL: Record<ReadingAppearance["measure"], string> = {
+  narrow: "38rem",
+  normal: "42rem",
+  wide: "46rem",
+};
+
+const FONT_FACE = { serif: "var(--font-display)", sans: "var(--font-sans)" } as const;
+
 function splitBlocks(text: string): Block[] {
   const sep = /\n\s*\n/.test(text) ? /\n\s*\n/ : /\n/;
   const out: Block[] = [];
@@ -97,6 +114,16 @@ function offsetWithin(el: HTMLElement, node: Node, offset: number): number {
   return total;
 }
 
+function scrollParent(el: HTMLElement | null): HTMLElement {
+  let node = el?.parentElement ?? null;
+  while (node) {
+    const oy = getComputedStyle(node).overflowY;
+    if (oy === "auto" || oy === "scroll") return node;
+    node = node.parentElement;
+  }
+  return document.documentElement;
+}
+
 export function Reader({
   contentItemId,
   title,
@@ -109,6 +136,8 @@ export function Reader({
   domain,
   depth,
   focusSelection,
+  reading,
+  initialFraction,
 }: {
   contentItemId: string;
   title: string;
@@ -120,24 +149,35 @@ export function Reader({
   targetLanguage: string;
   domain: string;
   depth: string;
-  /** selection id to scroll to and briefly ring, on arrival from the notebook */
   focusSelection?: string | null;
+  reading: ReadingAppearance;
+  initialFraction: number | null;
 }) {
   const router = useRouter();
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const textRef = useRef<HTMLDivElement | null>(null);
   const abort = useRef<AbortController | null>(null);
   const autoFired = useRef(false);
+  const restored = useRef(false);
   const runSeq = useRef(0);
+  const beaconTimer = useRef<number | undefined>(undefined);
   const pageNoteRef = useRef<HTMLElement | null>(null);
-  const [focusedBlock, setFocusedBlock] = useState(-1);
 
   const blocks = useMemo(() => splitBlocks(bodyText), [bodyText]);
+
+  // appearance — the device is yours; choices apply live and are remembered
+  const [appearance, setAppearance] = useState<ReadingAppearance>(reading);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [immersed, setImmersed] = useState(false);
+  const [progress, setProgress] = useState(() => initialFraction ?? 0);
+
   const [streamed, setStreamed] = useState("");
   const [activeMode, setActiveMode] = useState<"passage" | "page">("passage");
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<Range | null>(null);
   const [popover, setPopover] = useState<{ start: number; end: number; top: number; left: number } | null>(null);
+  const [focusedBlock, setFocusedBlock] = useState(-1);
 
   const [fresh, setFresh] = useState<Range[]>(() => sessionHighlights.get(contentItemId) ?? []);
   const ranges = useMemo(
@@ -173,7 +213,6 @@ export function Reader({
         })()
     : null;
 
-  // Newest gloss wins the paragraph it belongs to.
   const glossByBlock = useMemo(() => {
     const map = new Map<number, Result>();
     const ordered = [...selections].sort(
@@ -259,9 +298,77 @@ export function Reader({
     setPending(null);
   }
 
+  function applyAppearance(next: ReadingAppearance) {
+    setAppearance(next);
+    const fd = new FormData();
+    fd.set("reading_font", next.font);
+    fd.set("reading_size", next.size);
+    fd.set("reading_theme", next.theme);
+    fd.set("reading_measure", next.measure);
+    void saveReadingAppearance(fd);
+  }
+
+  // position: read progress, restore once, beacon on scroll (debounced)
+  useEffect(() => {
+    const sc = scrollParent(rootRef.current);
+    const onScroll = () => {
+      const max = sc.scrollHeight - sc.clientHeight;
+      const frac = max > 0 ? Math.min(1, Math.max(0, sc.scrollTop / max)) : 0;
+      setProgress(frac);
+      setImmersed(sc.scrollTop > 140);
+      window.clearTimeout(beaconTimer.current);
+      beaconTimer.current = window.setTimeout(() => {
+        const blob = new Blob([JSON.stringify({ content_item_id: contentItemId, fraction: frac })], {
+          type: "application/json",
+        });
+        if (navigator.sendBeacon) navigator.sendBeacon("/api/position", blob);
+      }, 900);
+    };
+    sc.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      sc.removeEventListener("scroll", onScroll);
+      window.clearTimeout(beaconTimer.current);
+    };
+  }, [contentItemId]);
+
+  useEffect(() => {
+    if (restored.current || focusSelection) return;
+    if (initialFraction == null || initialFraction <= 0.001) return;
+    restored.current = true;
+    const sc = scrollParent(rootRef.current);
+    requestAnimationFrame(() => {
+      sc.scrollTop = initialFraction * (sc.scrollHeight - sc.clientHeight);
+    });
+  }, [initialFraction, focusSelection]);
+
+  // keyboard: space and arrows turn the page
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const sc = scrollParent(rootRef.current);
+      const h = sc.clientHeight * 0.9;
+      if (e.key === " " || e.key === "ArrowDown" || e.key === "PageDown") {
+        e.preventDefault();
+        sc.scrollBy({ top: h, behavior: "smooth" });
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        sc.scrollBy({ top: -h, behavior: "smooth" });
+      } else if (e.key === "Home") {
+        sc.scrollTo({ top: 0, behavior: "smooth" });
+      } else if (e.key === "End") {
+        sc.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
+      } else if (e.key === "Escape") {
+        setSettingsOpen(false);
+        setPopover(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   function onTextClick(e: React.MouseEvent) {
     const sel = window.getSelection();
-    if (sel && !sel.isCollapsed) return; // a drag selection owns this gesture
+    if (sel && !sel.isCollapsed) return;
     const el = blockEl(e.target as Node);
     if (!el) return;
     const block = blocks.find((b) => b.start === Number(el.dataset.start));
@@ -300,15 +407,11 @@ export function Reader({
     });
   }
 
-  // Asking for the whole text should show the whole text's note, not leave the
-  // reader at the top wondering where it went.
   useEffect(() => {
     if (activeMode !== "page" || !running) return;
     pageNoteRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [activeMode, running]);
 
-  // Deep link from the notebook: bring the reader to that paragraph and mark it
-  // briefly so the eye knows where it arrived.
   useEffect(() => {
     if (!focusSelection) return;
     const target = selections.find((s) => s.id === focusSelection);
@@ -322,7 +425,6 @@ export function Reader({
     return () => window.clearTimeout(t);
   }, [focusSelection, selections, blocks]);
 
-  // A one-paragraph text is the quick-translate case: understand it on arrival.
   useEffect(() => {
     if (autoFired.current || !canRun || pageNote || blocks.length !== 1) return;
     autoFired.current = true;
@@ -331,115 +433,151 @@ export function Reader({
   }, [canRun, pageNote, blocks]);
 
   return (
-    <div className="mx-auto w-full max-w-[42rem] px-5 py-10 lg:max-w-[64rem] lg:px-10 lg:py-16">
-      <header className="lg:max-w-[42rem]">
-        <h1 className="font-display text-[28px] font-semibold leading-[1.2] text-ink lg:text-[32px]">
-          {title}
-        </h1>
-        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-muted">
-          <LangBadge code={sourceLanguage} size="sm" />
-          <span>{sourceLanguage === "auto" ? "detected" : findLanguage(sourceLanguage)?.name}</span>
-          <span className="text-line">&rarr;</span>
-          <LangBadge code={targetLanguage} size="sm" />
-          <span>{targetName}</span>
-          {domain !== "general" && <span>&middot; {domain}</span>}
-        </div>
+    <div
+      ref={rootRef}
+      data-theme={appearance.theme}
+      style={
+        {
+          "--text-col": TEXT_COL[appearance.measure],
+          "--reading-size": SIZE[appearance.size].size,
+          "--reading-leading": SIZE[appearance.size].leading,
+        } as React.CSSProperties
+      }
+      className="min-h-full bg-paper text-ink"
+    >
+      {/* progress hairline */}
+      <div className="sticky top-0 z-30 h-[3px] bg-transparent">
+        <div
+          className="h-full bg-ember transition-[width] duration-150 ease-out"
+          style={{ width: Math.round(progress * 100) + "%" }}
+        />
+      </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4">
+      <div className="reader-inner mx-auto px-5 pb-24 pt-6 lg:px-10 lg:pt-10">
+        {/* title + chrome — folds away while reading, like a device's toolbar */}
+        <header
+          className={
+            "overflow-hidden transition-all duration-300 ease-out " +
+            (immersed ? "max-h-0 opacity-0" : "max-h-40 opacity-100")
+          }
+        >
+          <h1 className="font-display text-[26px] font-semibold leading-[1.2] text-ink lg:text-[30px]">
+            {title}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-muted">
+            <LangBadge code={sourceLanguage} size="sm" />
+            <span>{sourceLanguage === "auto" ? "detected" : findLanguage(sourceLanguage)?.name}</span>
+            <span className="text-line">&rarr;</span>
+            <LangBadge code={targetLanguage} size="sm" />
+            <span>{targetName}</span>
+            {domain !== "general" && <span>&middot; {domain}</span>}
+          </div>
+        </header>
+
+        {/* toolbar — the reading controls, always reachable */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted">
           <button
             onClick={() => void run(null, "page")}
             disabled={!canRun}
-            className="text-[12px] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
+            className="underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
           >
             Understand the whole text
           </button>
           {running && (
-            <button onClick={stop} className="text-[12px] text-muted transition-colors hover:text-ink">
+            <button onClick={stop} className="transition-colors hover:text-ink">
               Stop
             </button>
           )}
+          <button
+            onClick={() => setSettingsOpen((v) => !v)}
+            className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-line font-display text-[13px] font-semibold text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink"
+            aria-label="Reading appearance"
+            title="Reading appearance"
+          >
+            Aa
+          </button>
         </div>
-      </header>
 
-      {!hasAny && !running && canRun && (
-        <p className="mt-6 text-[13px] text-muted lg:max-w-[42rem]">
-          Tap a paragraph to read it in {targetName}. Drag across a few words to read only those.
-        </p>
-      )}
-
-      {error && (
-        <p className="mt-6 rounded-[4px] border-l-2 border-danger bg-danger/5 py-2 pl-4 pr-3 text-[13px] text-danger lg:max-w-[42rem]">
-          {error}
-        </p>
-      )}
-
-      <div
-        ref={textRef}
-        onClick={onTextClick}
-        onMouseUp={onTextSelection}
-        onTouchEnd={() => window.setTimeout(onTextSelection, 120)}
-        className="mt-8 space-y-5 text-[18px] leading-[1.75] text-ink lg:space-y-0"
-      >
-        {blocks.length === 0 && (
-          <p className="text-[14px] text-muted">This text is empty.</p>
+        {settingsOpen && (
+          <div className="relative mt-3">
+            <button className="fixed inset-0 z-30 cursor-default" onClick={() => setSettingsOpen(false)} aria-label="Close" />
+            <div className="relative z-40 w-[min(22rem,100%)] rounded-card border border-line bg-paper p-4 shadow-sm">
+              <AppearancePanel appearance={appearance} onChange={applyAppearance} />
+            </div>
+          </div>
         )}
-        {blocks.map((b, i) => {
-          const segs = segmentsFor(b, ranges);
-          const gloss = i === pendingBlock && activeMode === "passage" ? live : glossByBlock.get(i) || null;
-          const isPending = i === pendingBlock && running;
-          return (
-            <div
-              key={i}
-              className="lg:grid lg:grid-cols-[minmax(0,42rem)_19rem] lg:items-start lg:gap-x-[3.5rem] lg:py-2"
-            >
-              <p
-                data-start={b.start}
-                data-end={b.end}
-                data-block={i}
-                className={
-                  "cursor-pointer whitespace-pre-wrap rounded-[4px] px-2 py-1 -mx-2 transition-all lg:mx-0 lg:px-0 " +
-                  (isPending ? "bg-paper-2/60 lg:bg-transparent" : "lg:hover:bg-paper-2/40") +
-                  (i === focusedBlock
-                    ? " ring-2 ring-sun/70 ring-offset-4 ring-offset-paper"
-                    : "")
-                }
-              >
-                {segs.map((s, j) =>
-                  s.hl ? (
-                    <mark key={j} className="rounded-[2px] bg-sun/30 text-ink">
-                      {s.text}
-                    </mark>
-                  ) : (
-                    <span key={j}>{s.text}</span>
-                  )
-                )}
-              </p>
 
-              {(gloss || isPending) && (
-                <aside className="gloss-in mt-2 border-l border-line pl-4 lg:mt-0 lg:border-l-0 lg:pl-0 lg:pt-[3px]">
-                  {isPending && !gloss?.understanding ? <Skeleton /> : gloss ? <GlossBody r={gloss} /> : null}
-                </aside>
+        {!hasAny && !running && canRun && (
+          <p className="mt-6 text-[13px] text-muted">
+            Tap a paragraph to read it in {targetName}. Drag across a few words to read only those.
+          </p>
+        )}
+
+        {error && (
+          <p className="mt-6 rounded-[4px] border-l-2 border-danger bg-danger/5 py-2 pl-4 pr-3 text-[13px] text-danger">
+            {error}
+          </p>
+        )}
+
+        <div
+          ref={textRef}
+          onClick={onTextClick}
+          onMouseUp={onTextSelection}
+          onTouchEnd={() => window.setTimeout(onTextSelection, 120)}
+          style={{ fontFamily: FONT_FACE[appearance.font] }}
+          className="mt-8 space-y-5 lg:space-y-0"
+        >
+          {blocks.length === 0 && <p className="text-[14px] text-muted">This text is empty.</p>}
+          {blocks.map((b, i) => {
+            const segs = segmentsFor(b, ranges);
+            const gloss = i === pendingBlock && activeMode === "passage" ? live : glossByBlock.get(i) || null;
+            const isPending = i === pendingBlock && running;
+            return (
+              <div key={i} className="reader-row lg:py-2">
+                <p
+                  data-start={b.start}
+                  data-end={b.end}
+                  data-block={i}
+                  className={
+                    "reader-text cursor-pointer whitespace-pre-wrap rounded-[4px] px-2 py-1 -mx-2 transition-all lg:mx-0 lg:px-0 " +
+                    (isPending ? "bg-paper-2/60 lg:bg-transparent" : "lg:hover:bg-paper-2/40") +
+                    (i === focusedBlock ? " ring-2 ring-sun/70 ring-offset-4 ring-offset-paper" : "")
+                  }
+                >
+                  {segs.map((s, j) =>
+                    s.hl ? (
+                      <mark key={j} className="rounded-[2px] bg-sun/30 text-ink">
+                        {s.text}
+                      </mark>
+                    ) : (
+                      <span key={j}>{s.text}</span>
+                    )
+                  )}
+                </p>
+
+                {(gloss || isPending) && (
+                  <aside className="gloss-in mt-2 border-l border-line pl-4 lg:mt-0 lg:border-l-0 lg:pl-0 lg:pt-[3px]">
+                    {isPending && !gloss?.understanding ? <Skeleton /> : gloss ? <GlossBody r={gloss} /> : null}
+                  </aside>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {(wholeText || (live?.mode === "page" && running)) && (
+          <section ref={pageNoteRef} className="gloss-in mt-12 border-t border-line pt-6">
+            <p className="text-[12px] text-muted">The whole text</p>
+            <div className="mt-3">
+              {live?.mode === "page" && running && !live.understanding ? (
+                <Skeleton />
+              ) : (
+                <GlossBody r={wholeText!} hard />
               )}
             </div>
-          );
-        })}
+          </section>
+        )}
       </div>
-
-      {(wholeText || (live?.mode === "page" && running)) && (
-        <section
-          ref={pageNoteRef}
-          className="gloss-in mt-12 border-t border-line pt-6 lg:max-w-[42rem]"
-        >
-          <p className="text-[12px] text-muted">The whole text</p>
-          <div className="mt-3">
-            {live?.mode === "page" && running && !live.understanding ? (
-              <Skeleton />
-            ) : (
-              <GlossBody r={wholeText!} hard />
-            )}
-          </div>
-        </section>
-      )}
 
       {popover && (
         <button
@@ -454,6 +592,113 @@ export function Reader({
   );
 }
 
+function AppearancePanel({
+  appearance,
+  onChange,
+}: {
+  appearance: ReadingAppearance;
+  onChange: (next: ReadingAppearance) => void;
+}) {
+  const pick = (k: keyof ReadingAppearance, v: string) => onChange({ ...appearance, [k]: v });
+
+  const themes: { v: ReadingAppearance["theme"]; label: string; bg: string; fg: string }[] = [
+    { v: "paper", label: "Paper", bg: "#FDFAF6", fg: "#221B17" },
+    { v: "sepia", label: "Sepia", bg: "#F2E7CF", fg: "#3B2E1E" },
+    { v: "night", label: "Night", bg: "#1A1815", fg: "#E7E3DB" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[11px] text-muted">Typeface</p>
+        <div className="mt-1.5 flex gap-2">
+          {(["serif", "sans"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => pick("font", f)}
+              className={
+                "rounded-input border px-3 py-1.5 text-[13px] capitalize " +
+                (appearance.font === f
+                  ? "border-ember bg-paper-2 font-medium text-ink"
+                  : "border-line text-ink-soft hover:bg-paper-2")
+              }
+            >
+              {f === "serif" ? "Serif" : "Sans"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[11px] text-muted">Size</p>
+        <div className="mt-1.5 flex items-end gap-2">
+          {(
+            [
+              ["small", "11px"],
+              ["medium", "13px"],
+              ["large", "15px"],
+              ["xl", "17px"],
+            ] as const
+          ).map(([s, px]) => (
+            <button
+              key={s}
+              onClick={() => pick("size", s as ReadingAppearance["size"])}
+              className={
+                "rounded-input border px-3 py-1.5 " +
+                (appearance.size === s ? "border-ember bg-paper-2 font-medium text-ink" : "border-line text-ink-soft hover:bg-paper-2")
+              }
+              style={{ fontSize: px }}
+              aria-label={s}
+              title={s}
+            >
+              A
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[11px] text-muted">Theme</p>
+        <div className="mt-1.5 flex gap-2">
+          {themes.map((t) => (
+            <button
+              key={t.v}
+              onClick={() => pick("theme", t.v)}
+              className={
+                "flex h-9 w-9 items-center justify-center rounded-full border text-[12px] " +
+                (appearance.theme === t.v ? "border-ember ring-2 ring-ember/30" : "border-line")
+              }
+              style={{ background: t.bg, color: t.fg }}
+              aria-label={t.label}
+              title={t.label}
+            >
+              Aa
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[11px] text-muted">Width</p>
+        <div className="mt-1.5 flex gap-2">
+          {(["narrow", "normal", "wide"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => pick("measure", m)}
+              className={
+                "rounded-input border px-3 py-1.5 text-[13px] capitalize " +
+                (appearance.measure === m ? "border-ember bg-paper-2 font-medium text-ink" : "border-line text-ink-soft hover:bg-paper-2")
+              }
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Skeleton() {
   return (
     <div className="space-y-2" aria-busy="true">
@@ -464,15 +709,11 @@ function Skeleton() {
   );
 }
 
-// A gloss, not a dashboard: the rendering in the reader's own type, the hard
-// words as a quiet line, and the reasoning folded away until asked for.
 function GlossBody({ r, hard }: { r: Result; hard?: boolean }) {
   if (r.mode === "page") {
     return (
       <div className="space-y-4">
-        {r.understanding && (
-          <p className="font-display text-[17px] leading-[1.6] text-ink">{r.understanding}</p>
-        )}
+        {r.understanding && <p className="font-display text-[17px] leading-[1.6] text-ink">{r.understanding}</p>}
         {r.terms && r.terms.length > 0 && (
           <ul className="space-y-1.5 border-t border-line pt-3">
             {r.terms.map((t, i) => (
@@ -488,9 +729,7 @@ function GlossBody({ r, hard }: { r: Result; hard?: boolean }) {
 
   return (
     <div className="space-y-2.5">
-      {r.understanding && (
-        <p className="font-display text-[16px] leading-[1.55] text-ink">{r.understanding}</p>
-      )}
+      {r.understanding && <p className="font-display text-[16px] leading-[1.55] text-ink">{r.understanding}</p>}
       {r.terms && r.terms.length > 0 && (
         <ul className="space-y-0.5 border-t border-line pt-2.5 text-[12.5px] leading-snug text-ink-soft">
           {r.terms.map((t, i) => (

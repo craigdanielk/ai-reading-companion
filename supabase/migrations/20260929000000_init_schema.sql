@@ -1,4 +1,4 @@
--- adel AI Reading Companion — T3 init schema (7 app tables + RLS)
+-- adel Jeralis — T3 init schema (7 app tables + RLS)
 -- "user" record = auth.users (Supabase Auth); app tables scope to auth.uid().
 
 create table if not exists public.content_item (

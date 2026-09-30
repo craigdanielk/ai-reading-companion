@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="AI Reading Companion">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 48" width="150" height="48" role="img" aria-label="Jeralis">
   <rect width="48" height="48" rx="13" fill="#C63C24"/>
   <rect x="11" y="14" width="26" height="3.4" rx="1.7" fill="#FDFAF6"/>
   <rect x="11" y="22.3" width="19" height="3.4" rx="1.7" fill="#FDFAF6"/>
   <rect x="11" y="30.6" width="14" height="3.4" rx="1.7" fill="#FDFAF6"/>
   <circle cx="33.5" cy="32.3" r="3.6" fill="#F2B33D"/>
+  <text x="62" y="30.5" font-family="Fraunces, Georgia, serif" font-size="20" font-weight="600" fill="#221B17">Jeralis</text>
 </svg>

@@ -410,6 +410,31 @@ export async function savePreferences(formData: FormData): Promise<void> {
   redirect("/settings/preferences");
 }
 
+// Reading-appearance choices — typeface, size, theme and measure. Applied live
+// in the reader and remembered, so the device feels like yours.
+export async function saveReadingAppearance(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const pick = (name: string, allowed: string[], fallback: string) => {
+    const v = (formData.get(name) as string) || "";
+    return allowed.includes(v) ? v : fallback;
+  };
+
+  const { error } = await supabase.from("user_preference").upsert(
+    {
+      user_id: data.user.id,
+      reading_font: pick("reading_font", ["serif", "sans"], "serif"),
+      reading_size: pick("reading_size", ["small", "medium", "large", "xl"], "medium"),
+      reading_theme: pick("reading_theme", ["paper", "sepia", "night"], "paper"),
+      reading_measure: pick("reading_measure", ["narrow", "normal", "wide"], "normal"),
+    },
+    { onConflict: "user_id" }
+  );
+  if (error) console.error("saveReadingAppearance:", error.message);
+}
+
 export async function deleteProvider(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();

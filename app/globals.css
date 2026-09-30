@@ -63,6 +63,48 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+/* Reading themes — the device surface changes, the app chrome does not.
+   Tokens are referenced through @theme inline, so overriding the raw values here
+   re-tints every bg-paper / text-ink / border-line inside the themed subtree. */
+[data-theme="sepia"] {
+  --ink: #3B2E1E;
+  --ink-soft: #5C4A32;
+  --muted: #8A7353;
+  --line: #D9C7A8;
+  --paper: #F2E7CF;
+  --paper-2: #EADCC0;
+}
+
+[data-theme="night"] {
+  --ink: #E7E3DB;
+  --ink-soft: #B7B0A4;
+  --muted: #8B857A;
+  --line: #2E2B27;
+  --paper: #1A1815;
+  --paper-2: #24211D;
+}
+
+/* The reading column and its margin note sit in a two-column grid on wide
+   screens; the text column's measure is a reading-appearance preference. */
+.reader-row { display: block; }
+@media (min-width: 64rem) {
+  .reader-row {
+    display: grid;
+    grid-template-columns: minmax(0, var(--text-col, 42rem)) 19rem;
+    column-gap: 3.5rem;
+    align-items: start;
+  }
+}
+
+/* Reading text size and leading are preferences, not fixed styles. */
+.reader-text { font-size: var(--reading-size, 18px); line-height: var(--reading-leading, 1.75); }
+
+/* The inner measure grows with the text column; on a phone it stays one column. */
+.reader-inner { max-width: 42rem; }
+@media (min-width: 64rem) {
+  .reader-inner { max-width: calc(var(--text-col, 42rem) + 3.5rem + 19rem); }
+}
+
 body {
   background: var(--paper);
   color: var(--ink);

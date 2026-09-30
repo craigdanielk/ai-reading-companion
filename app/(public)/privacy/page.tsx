@@ -6,7 +6,7 @@ export default function PrivacyPage() {
       <Link href="/" className="text-sm text-muted hover:text-ember">&larr; Home</Link>
       <h1 className="mt-4 font-display text-2xl font-semibold">Privacy &amp; data handling</h1>
       <p className="prose-measure mt-4 text-[15px] text-ink-soft">
-        AI Reading Companion is a <strong className="font-medium text-ink">private beta</strong> for
+        Jeralis is a <strong className="font-medium text-ink">private beta</strong> for
         personal reading support from content you provide.
       </p>
       <ul className="prose-measure mt-6 space-y-3 text-[15px] text-ink-soft">
