@@ -29,7 +29,7 @@ function toResult(row: ResultRow): Result {
 
 /**
  * Everything the reader needs for one section: the highlights to draw in the
- * text, and the note that belongs in the margin beside the whole thing.
+ * text, and the note that belongs beside the whole thing.
  */
 export async function loadReaderData(
   supabase: Client,

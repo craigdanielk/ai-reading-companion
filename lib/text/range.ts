@@ -1,4 +1,6 @@
-const WORD = /[\p{L}\p{N}\p{M}]/u;
+// Letters, digits, combining marks and apostrophes (both the ASCII and the
+// typographic one) form a word: "l'essentiel" and "don't" must not snap in half.
+const WORD = /[\p{L}\p{N}\p{M}'']/u;
 
 function isWord(ch: string | undefined): boolean {
   return !!ch && WORD.test(ch);

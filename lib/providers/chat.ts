@@ -1,7 +1,7 @@
 import { ComprehensionRequest, ComprehensionResult } from "./types";
 import { buildSystemPrompt, buildUserPrompt } from "./prompt";
 
-function normaliseTerms(raw: unknown): string[] {
+export function normaliseTerms(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((t: unknown) => {
     if (typeof t === "string") return t;
@@ -15,7 +15,7 @@ function normaliseTerms(raw: unknown): string[] {
 
 // Models occasionally wrap JSON in fences, prepend prose, or emit raw control
 // characters inside strings. A bare JSON.parse loses the whole comprehension.
-function extractJson(content: string): Record<string, unknown> {
+export function extractJson(content: string): Record<string, unknown> {
   const raw = (content || "").trim();
   const attempts: string[] = [];
   attempts.push(raw);

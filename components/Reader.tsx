@@ -46,6 +46,38 @@ interface Range {
 }
 
 const sessionHighlights = new Map<string, Range[]>();
+// Session-understood results, keyed by section, so the gloss text survives the
+// moment between the stream ending and the server refresh landing.
+interface SessionGloss {
+  range: Range;
+  result: Result;
+}
+const sessionGlosses = new Map<string, SessionGloss[]>();
+
+function parseResult(raw: string, mode: "passage" | "page"): Result {
+  if (mode === "page") {
+    const p = parsePageSections(raw);
+    return {
+      id: null,
+      mode: "page",
+      original: null,
+      understanding: p.sense || null,
+      terms: p.hard || null,
+      keyIdea: null,
+      explanation: null,
+    };
+  }
+  const p = parseSections(raw);
+  return {
+    id: null,
+    mode: "passage",
+    original: p.original || null,
+    understanding: p.understanding || null,
+    terms: p.importantTerms || null,
+    keyIdea: p.keyIdea || null,
+    explanation: p.explanation || null,
+  };
+}
 
 const SIZE = {
   small: { size: "18px", leading: "1.8" },
@@ -180,51 +212,31 @@ export function Reader({
   const [focusedBlock, setFocusedBlock] = useState(-1);
 
   const [fresh, setFresh] = useState<Range[]>(() => sessionHighlights.get(contentItemId) ?? []);
+  const [glosses, setGlosses] = useState<SessionGloss[]>(() => sessionGlosses.get(contentItemId) ?? []);
   const ranges = useMemo(
     () => [...selections.map((s) => ({ start: s.start, end: s.end })), ...fresh],
     [selections, fresh]
   );
 
-  const live: Result | null = streamed
-    ? activeMode === "page"
-      ? (() => {
-          const p = parsePageSections(streamed);
-          return {
-            id: null,
-            mode: "page" as const,
-            original: null,
-            understanding: p.sense || null,
-            terms: p.hard || null,
-            keyIdea: null,
-            explanation: null,
-          };
-        })()
-      : (() => {
-          const p = parseSections(streamed);
-          return {
-            id: null,
-            mode: "passage" as const,
-            original: p.original || null,
-            understanding: p.understanding || null,
-            terms: p.importantTerms || null,
-            keyIdea: p.keyIdea || null,
-            explanation: p.explanation || null,
-          };
-        })()
-    : null;
+  const live: Result | null = streamed ? parseResult(streamed, activeMode) : null;
 
   const glossByBlock = useMemo(() => {
     const map = new Map<number, Result>();
-    const ordered = [...selections].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-    for (const s of ordered) {
-      if (!s.result) continue;
-      const idx = blocks.findIndex((b) => s.end > b.start && s.start < b.end);
-      if (idx >= 0 && !map.has(idx)) map.set(idx, s.result);
+    const ordered = [
+      ...selections.map((s) => ({
+        range: { start: s.start, end: s.end },
+        result: s.result,
+        recency: new Date(s.createdAt).getTime() || 0,
+      })),
+      ...glosses.map((g) => ({ range: g.range, result: g.result, recency: Number.MAX_SAFE_INTEGER })),
+    ].sort((a, b) => b.recency - a.recency);
+    for (const item of ordered) {
+      if (!item.result) continue;
+      const idx = blocks.findIndex((b) => item.range.end > b.start && item.range.start < b.end);
+      if (idx >= 0 && !map.has(idx)) map.set(idx, item.result);
     }
     return map;
-  }, [selections, blocks]);
+  }, [selections, glosses, blocks]);
 
   const pendingBlock = useMemo(() => {
     if (!pending) return -1;
@@ -269,11 +281,18 @@ export function Reader({
         setStreamed(acc);
       }
       if (selection && acc.trim() && seq === runSeq.current) {
+        const result = parseResult(acc, mode);
         const known = sessionHighlights.get(contentItemId) ?? [];
         if (!known.some((r) => r.start === selection.start && r.end === selection.end)) {
           const next = [...known, selection];
           sessionHighlights.set(contentItemId, next);
           setFresh(next);
+        }
+        const knownGlosses = sessionGlosses.get(contentItemId) ?? [];
+        if (!knownGlosses.some((g) => g.range.start === selection.start && g.range.end === selection.end)) {
+          const next = [...knownGlosses, { range: selection, result }];
+          sessionGlosses.set(contentItemId, next);
+          setGlosses(next);
         }
       }
     } catch (e) {
