@@ -20,10 +20,10 @@ export default async function BookPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ s?: string }>;
+  searchParams: Promise<{ s?: string; at?: string }>;
 }) {
   const { id } = await params;
-  const { s } = await searchParams;
+  const { s, at } = await searchParams;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
@@ -41,13 +41,20 @@ export default async function BookPage({
   const list = sections ?? [];
   const current = list.find((x) => x.id === s) ?? list[0] ?? null;
 
-  const [{ data: profile }, reader] = await Promise.all([
+  const [{ data: profile }, reader, noteCount] = await Promise.all([
     current
       ? supabase.from("content_profile").select("*").eq("content_item_id", current.id).maybeSingle()
       : Promise.resolve({ data: null }),
     current
       ? loadReaderData(supabase, current.id)
       : Promise.resolve({ pageNote: null, selections: [] }),
+    list.length
+      ? supabase
+          .from("selection")
+          .select("id", { count: "exact", head: true })
+          .in("content_item_id", list.map((x) => x.id))
+          .then((r) => r.count ?? 0)
+      : Promise.resolve(0),
   ]);
 
   const multi = list.length > 1;
@@ -61,6 +68,13 @@ export default async function BookPage({
             &larr; Library
           </Link>
           {multi && <span className="truncate text-ink-soft">{book.title}</span>}
+
+          <Link
+            href={"/book/" + book.id + "/notes"}
+            className={(noteCount || 0) > 0 ? "hover:text-ink" : "opacity-60 hover:text-ink"}
+          >
+            Notes{(noteCount || 0) > 0 ? " (" + noteCount + ")" : ""}
+          </Link>
 
           {current && (
             <details className="ml-auto">
@@ -204,6 +218,7 @@ export default async function BookPage({
             targetLanguage={profile?.target_language || "en"}
             domain={profile?.domain || "general"}
             depth={profile?.comprehension_depth || "intermediate"}
+            focusSelection={at || null}
           />
         ) : (
           <div className="mx-auto w-full max-w-2xl px-5 py-8">

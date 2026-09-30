@@ -108,6 +108,7 @@ export function Reader({
   targetLanguage,
   domain,
   depth,
+  focusSelection,
 }: {
   contentItemId: string;
   title: string;
@@ -119,6 +120,8 @@ export function Reader({
   targetLanguage: string;
   domain: string;
   depth: string;
+  /** selection id to scroll to and briefly ring, on arrival from the notebook */
+  focusSelection?: string | null;
 }) {
   const router = useRouter();
   const textRef = useRef<HTMLDivElement | null>(null);
@@ -126,6 +129,7 @@ export function Reader({
   const autoFired = useRef(false);
   const runSeq = useRef(0);
   const pageNoteRef = useRef<HTMLElement | null>(null);
+  const [focusedBlock, setFocusedBlock] = useState(-1);
 
   const blocks = useMemo(() => splitBlocks(bodyText), [bodyText]);
   const [streamed, setStreamed] = useState("");
@@ -303,6 +307,21 @@ export function Reader({
     pageNoteRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [activeMode, running]);
 
+  // Deep link from the notebook: bring the reader to that paragraph and mark it
+  // briefly so the eye knows where it arrived.
+  useEffect(() => {
+    if (!focusSelection) return;
+    const target = selections.find((s) => s.id === focusSelection);
+    if (!target) return;
+    const idx = blocks.findIndex((b) => target.end > b.start && target.start < b.end);
+    if (idx < 0) return;
+    setFocusedBlock(idx);
+    const el = document.querySelector('[data-block="' + idx + '"]');
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = window.setTimeout(() => setFocusedBlock(-1), 2600);
+    return () => window.clearTimeout(t);
+  }, [focusSelection, selections, blocks]);
+
   // A one-paragraph text is the quick-translate case: understand it on arrival.
   useEffect(() => {
     if (autoFired.current || !canRun || pageNote || blocks.length !== 1) return;
@@ -376,9 +395,13 @@ export function Reader({
               <p
                 data-start={b.start}
                 data-end={b.end}
+                data-block={i}
                 className={
-                  "cursor-pointer whitespace-pre-wrap rounded-[4px] px-2 py-1 -mx-2 transition-colors lg:mx-0 lg:px-0 " +
-                  (isPending ? "bg-paper-2/60 lg:bg-transparent" : "lg:hover:bg-paper-2/40")
+                  "cursor-pointer whitespace-pre-wrap rounded-[4px] px-2 py-1 -mx-2 transition-all lg:mx-0 lg:px-0 " +
+                  (isPending ? "bg-paper-2/60 lg:bg-transparent" : "lg:hover:bg-paper-2/40") +
+                  (i === focusedBlock
+                    ? " ring-2 ring-sun/70 ring-offset-4 ring-offset-paper"
+                    : "")
                 }
               >
                 {segs.map((s, j) =>
