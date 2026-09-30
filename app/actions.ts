@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { resolveProvider } from "@/lib/providers/resolve";
 import { ocrImage } from "@/lib/providers/ocr";
 import { findKind, DEFAULT_KIND, TEXT_KINDS } from "@/lib/text-kinds";
+import { extractDocument, detectDocKind, titleFromFilename } from "@/lib/extract/document";
 
 const DEMO_EMAIL = "demo@adel.dev";
 const DEMO_PASSWORD = "AdelDemo2026!Secure";
@@ -351,7 +352,9 @@ export async function createText(formData: FormData): Promise<void> {
   const askedKind = (formData.get("kind") as string) || DEFAULT_KIND;
   const kind = (TEXT_KINDS.some((k) => k.code === askedKind) ? askedKind : DEFAULT_KIND) as string;
 
-  const title = titleFrom(body_text);
+  // A document already has a name; a pasted passage does not.
+  const askedTitle = ((formData.get("title") as string) || "").trim().slice(0, 90);
+  const title = askedTitle || titleFrom(body_text);
   let bookId = givenBook;
   let bookKind = kind;
 
@@ -554,6 +557,50 @@ export async function ocrFromUpload(
     return { text, path };
   } catch (e) {
     return { error: (e as Error).message };
+  }
+}
+
+/**
+ * Bring in a document that already contains text: PDF, EPUB, DOCX, TXT or
+ * Markdown. Images are a different path — they go through OCR.
+ */
+export async function importDocument(
+  formData: FormData
+): Promise<{ text?: string; title?: string; kind?: string; warning?: string; error?: string; path?: string }> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { error: "Not signed in" };
+
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return { error: "No file selected" };
+
+  const kind = detectDocKind(file.name, file.type);
+  if (kind === "image") return { error: "Images are read with Scan or upload." };
+  if (kind === "unknown") {
+    return { error: "That file type is not supported. Use PDF, EPUB, DOCX, TXT or Markdown." };
+  }
+
+  // Keep the original file: it is the provenance of the text.
+  const safe = (file.name || "document").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-60);
+  const path = auth.user.id + "/uploads/" + Date.now() + "-" + safe;
+  const { error: upErr } = await supabase.storage.from("content").upload(path, file);
+  if (upErr) console.error("importDocument storage:", upErr.message);
+
+  try {
+    const r = await extractDocument(file);
+    if (!r.text.trim()) {
+      return { warning: r.warning || "No readable text was found in that file." };
+    }
+    return {
+      text: r.text,
+      title: titleFromFilename(file.name),
+      kind: r.kind,
+      warning: r.warning,
+      path,
+    };
+  } catch (e) {
+    console.error("importDocument:", (e as Error).message);
+    return { error: "That file could not be read. It may be corrupt or password-protected." };
   }
 }
 

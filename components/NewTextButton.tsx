@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { createText, ocrFromUpload } from "@/app/actions";
+import { createText, ocrFromUpload, importDocument } from "@/app/actions";
 import { TEXT_KINDS, DEFAULT_KIND } from "@/lib/text-kinds";
 
 function Submit({ ready }: { ready: boolean }) {
@@ -35,6 +35,7 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [storagePath, setStoragePath] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   function close() {
@@ -43,21 +44,46 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
     setBusy(false);
   }
 
-  async function readImage(file: File) {
+  // Images are read with a vision model; documents already carry their text.
+  async function readFile(file: File) {
+    const isImage = (file.type || "").startsWith("image/");
     setBusy(true);
-    setNote("Reading the page…");
+    setNote(isImage ? "Reading the page…" : "Opening the document…");
+
     const fd = new FormData();
     fd.set("file", file);
-    const res = await ocrFromUpload(fd);
-    setBusy(false);
-    if (res.error) {
-      setNote(res.error);
-      return;
+
+    if (isImage) {
+      const res = await ocrFromUpload(fd);
+      setBusy(false);
+      if (res.error) {
+        setNote(res.error);
+        return;
+      }
+      setText(res.text || "");
+      setStoragePath(res.path || null);
+    } else {
+      const res = await importDocument(fd);
+      setBusy(false);
+      if (res.error) {
+        setNote(res.error);
+        return;
+      }
+      if (!res.text) {
+        setNote(res.warning || "Nothing readable was found in that file.");
+        return;
+      }
+      setText(res.text);
+      setStoragePath(res.path || null);
+      if (res.title) setTitle(res.title);
     }
-    setText(res.text || "");
-    setStoragePath(res.path || null);
+
     setSource("type");
-    setNote("Text read from the image — check it before continuing.");
+    setNote(
+      isImage
+        ? "Text read from the image — check it before continuing."
+        : "Text extracted — check it before continuing."
+    );
   }
 
   async function pasteClipboard() {
@@ -137,23 +163,24 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
             <form action={createText} className="mt-3">
               <input type="hidden" name="kind" value={kind} />
               {storagePath && <input type="hidden" name="storage_ref" value={storagePath} />}
+              {title && <input type="hidden" name="title" value={title} />}
 
               {source === "upload" ? (
                 <div className="rounded-input border border-dashed border-line p-4 text-center">
-                  <p className="text-[13px] text-ink-soft">Photograph or upload a page.</p>
+                  <p className="text-[13px] text-ink-soft">Photograph a page, or open a document.</p>
                   <p className="mt-1 text-[11.5px] text-muted">
-                    The text is read from the image, then you check it.
+                    Images are read with OCR. PDF, EPUB, DOCX, TXT and Markdown already carry their
+                    text. Either way, you check it before it is filed.
                   </p>
                   <input
                     ref={fileRef}
                     type="file"
                     name="image"
-                    accept="image/*"
-                    capture="environment"
+                    accept="image/*,.pdf,.epub,.docx,.txt,.md,application/pdf,application/epub+zip"
                     className="sr-only"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) void readImage(file);
+                      if (file) void readFile(file);
                     }}
                   />
                   <button
@@ -162,7 +189,7 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
                     onClick={() => fileRef.current?.click()}
                     className="mt-3 rounded-pill bg-ink px-4 py-2 text-[13px] font-medium text-paper disabled:opacity-40"
                   >
-                    {busy ? "Reading…" : "Choose an image"}
+                    {busy ? "Reading…" : "Choose a file"}
                   </button>
                 </div>
               ) : (
