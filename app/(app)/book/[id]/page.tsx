@@ -7,6 +7,7 @@ import { Reader } from "@/components/Reader";
 import { Compose } from "@/components/Compose";
 import { LangPicker } from "@/components/LangPicker";
 import { KindBadge } from "@/components/KindBadge";
+import { TextList } from "@/components/TextList";
 import { DOMAINS } from "@/lib/nuance/registry";
 import { TEXT_KINDS } from "@/lib/text-kinds";
 
@@ -30,7 +31,10 @@ export default async function BookPage({
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
 
-  const { data: book } = await supabase.from("book").select("*").eq("id", id).single();
+  const [{ data: book }, { data: allBooks }] = await Promise.all([
+    supabase.from("book").select("*").eq("id", id).single(),
+    supabase.from("book").select("id, title, author, kind").order("created_at", { ascending: false }),
+  ]);
   if (!book) notFound();
 
   const { data: sections } = await supabase
@@ -76,7 +80,18 @@ export default async function BookPage({
   const readerTitle = multi ? current?.title || book.title : book.title;
 
   return (
-    <div className="flex min-h-full flex-col lg:h-full lg:min-h-0">
+    <div className="flex h-full min-h-0">
+      {/* the same persistent list as the shelf, so reading and choosing are one surface */}
+      <div className="hidden w-[19rem] shrink-0 border-r border-line lg:block">
+        <TextList
+          texts={(allBooks ?? []).map((b) => ({ id: b.id, title: b.title, author: b.author, kind: b.kind }))}
+          activeId={id}
+          heading="All texts"
+          grouped
+        />
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col">
       <div className="shrink-0 border-b border-line px-5 py-2.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
           <Link href="/library" className="hover:text-ink">
@@ -271,6 +286,7 @@ export default async function BookPage({
           </div>
         </details>
       )}
+      </div>
     </div>
   );
 }

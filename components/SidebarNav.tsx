@@ -1,19 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-export interface SidebarBook {
-  id: string;
-  title: string;
-}
+import { usePathname, useSearchParams } from "next/navigation";
+import { TEXT_KINDS } from "@/lib/text-kinds";
+import { NewTextButton } from "@/components/NewTextButton";
 
 function Row({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
     <Link
       href={href}
       className={
-        "block truncate rounded-input px-2.5 py-1.5 text-[13px] transition-colors " +
+        "flex items-center justify-between gap-2 rounded-input px-2.5 py-1.5 text-[13px] transition-colors " +
         (active ? "bg-paper-2 font-medium text-ink" : "text-ink-soft hover:bg-paper-2/70 hover:text-ink")
       }
     >
@@ -22,29 +19,51 @@ function Row({ href, active, children }: { href: string; active: boolean; childr
   );
 }
 
-export function SidebarNav({ books, email }: { books: SidebarBook[]; email: string }) {
+export function SidebarNav({
+  counts,
+  total,
+  email,
+}: {
+  counts: Record<string, number>;
+  total: number;
+  email: string;
+}) {
   const pathname = usePathname();
+  const params = useSearchParams();
+  const activeKind = params.get("kind");
+  const onLibrary = pathname === "/library";
+
   return (
     <div className="flex h-full flex-col">
-      <Row href="/library" active={pathname === "/library"}>
-        Library
-      </Row>
+      <NewTextButton variant="rail" />
 
-      <p className="mt-4 px-2.5 pb-1 text-[11px] text-muted">Books</p>
-      <div className="max-h-[38%] min-h-0 overflow-y-auto pr-1">
-        {books.length === 0 && <p className="px-2.5 py-1 text-[12px] text-muted">No books yet</p>}
-        {books.map((b) => (
-          <Row key={b.id} href={"/book/" + b.id} active={pathname === "/book/" + b.id}>
-            {b.title}
+      <nav className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+        <Row href="/library" active={onLibrary && !activeKind}>
+          <span>All texts</span>
+          <span className="text-[11.5px] text-muted">{total}</span>
+        </Row>
+
+        {TEXT_KINDS.filter((k) => (counts[k.code] ?? 0) > 0).map((k) => (
+          <Row
+            key={k.code}
+            href={"/library?kind=" + k.code}
+            active={onLibrary && activeKind === k.code}
+          >
+            <span>{k.plural}</span>
+            <span className="text-[11.5px] text-muted">{counts[k.code]}</span>
           </Row>
         ))}
-      </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1" />
+        <div className="mt-4">
+          <Row href="/notes" active={pathname.startsWith("/notes")}>
+            <span>Notes</span>
+          </Row>
+        </div>
+      </nav>
 
       <div className="mt-3 border-t border-line pt-2">
         <Row href="/settings" active={pathname.startsWith("/settings")}>
-          Settings
+          <span>Settings</span>
         </Row>
         <p className="truncate px-2.5 pt-1 text-[11px] text-muted">{email}</p>
       </div>

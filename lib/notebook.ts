@@ -10,6 +10,11 @@ interface ResultRow {
   created_at: string;
 }
 
+export interface GlobalNotebookEntry extends NotebookEntry {
+  bookId: string;
+  bookTitle: string;
+}
+
 export interface NotebookEntry {
   selectionId: string;
   sectionId: string;
@@ -84,4 +89,69 @@ export async function loadNotebook(supabase: Client, bookId: string): Promise<No
   });
 
   return entries;
+}
+
+/** Every saved gloss across the whole library, newest book first. */
+export async function loadNotebookAll(supabase: Client): Promise<GlobalNotebookEntry[]> {
+  const { data: books } = await supabase
+    .from("book")
+    .select("id, title, created_at")
+    .order("created_at", { ascending: false });
+  const bookList = books ?? [];
+  if (bookList.length === 0) return [];
+
+  const bookIds = bookList.map((b) => b.id);
+  const { data: sections } = await supabase
+    .from("content_item")
+    .select("id, title, book_id")
+    .in("book_id", bookIds)
+    .order("position", { ascending: true });
+
+  const sectionList = sections ?? [];
+  if (sectionList.length === 0) return [];
+
+  const sectionTitle = new Map(sectionList.map((s) => [s.id, s.title || "Text"]));
+  const sectionBook = new Map(sectionList.map((s) => [s.id, s.book_id as string]));
+  const bookTitle = new Map(bookList.map((b) => [b.id, b.title]));
+
+  const { data: sels } = await supabase
+    .from("selection")
+    .select("id, content_item_id, start_offset, quote")
+    .in("content_item_id", sectionList.map((s) => s.id))
+    .order("start_offset", { ascending: true });
+
+  const ids = (sels ?? []).map((s) => s.id);
+  const { data: rows } = ids.length
+    ? await supabase
+        .from("ai_result")
+        .select("id, selection_id, understanding, terms, created_at")
+        .in("selection_id", ids)
+        .order("created_at", { ascending: false })
+    : { data: [] as { id: string; selection_id: string | null; understanding: string | null; terms: string[] | null; created_at: string }[] };
+
+  const newest = new Map<string, { understanding: string | null; terms: string[] | null }>();
+  for (const row of rows ?? []) {
+    const key = row.selection_id || "";
+    if (key && !newest.has(key)) newest.set(key, { understanding: row.understanding, terms: row.terms });
+  }
+
+  const order = new Map(bookList.map((b, i) => [b.id, i]));
+  const out: GlobalNotebookEntry[] = [];
+  for (const s of sels ?? []) {
+    const r = newest.get(s.id);
+    if (!r) continue;
+    const bid = sectionBook.get(s.content_item_id) || "";
+    out.push({
+      selectionId: s.id,
+      sectionId: s.content_item_id,
+      sectionTitle: sectionTitle.get(s.content_item_id) || "Text",
+      quote: s.quote,
+      understanding: r.understanding,
+      terms: r.terms,
+      bookId: bid,
+      bookTitle: bookTitle.get(bid) || "Text",
+    });
+  }
+  out.sort((a, b) => (order.get(a.bookId) ?? 0) - (order.get(b.bookId) ?? 0));
+  return out;
 }
