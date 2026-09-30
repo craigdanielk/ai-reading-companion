@@ -378,9 +378,11 @@ export async function createText(formData: FormData): Promise<void> {
     .eq("book_id", bookId);
   const position = existing?.length ?? 0;
 
+  const storage_ref = ((formData.get("storage_ref") as string) || "") || null;
+
   const { data: item, error } = await supabase
     .from("content_item")
-    .insert({ user_id: data.user.id, book_id: bookId, kind: "text", title, body_text, position })
+    .insert({ user_id: data.user.id, book_id: bookId, kind: "text", title, body_text, position, storage_ref })
     .select("id")
     .single();
   if (error || !item) {
@@ -505,6 +507,54 @@ export async function connectProvider(formData: FormData): Promise<void> {
     }
   }
   redirect(await sectionUrl(supabase, content_item_id));
+}
+
+/**
+ * OCR a page the reader just scanned or photographed, before any text exists.
+ * Returns the extracted text so it can be reviewed and corrected in the capture
+ * sheet — OCR is never trusted straight into the library.
+ */
+export async function ocrFromUpload(
+  formData: FormData
+): Promise<{ text?: string; path?: string; error?: string }> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { error: "Not signed in" };
+
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) return { error: "No image selected" };
+
+  // Keep the page image: it is the provenance of the text.
+  const safe = (file.name || "page").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-60);
+  const path = auth.user.id + "/uploads/" + Date.now() + "-" + safe;
+  const { error: upErr } = await supabase.storage.from("content").upload(path, file);
+  if (upErr) console.error("ocrFromUpload storage:", upErr.message);
+
+  const { data: signed } = await supabase.storage.from("content").createSignedUrl(path, 300);
+  const imageUrl = signed?.signedUrl;
+  if (!imageUrl) return { error: "Could not read the uploaded image." };
+
+  // OCR needs an OpenAI-compatible vision model: the reader's own key first,
+  // then the platform's, so a scan works before BYOK is configured.
+  const { data: conn } = await supabase
+    .from("provider_connection")
+    .select("credential_ref")
+    .eq("user_id", auth.user.id)
+    .eq("provider", "openai")
+    .maybeSingle();
+  const apiKey =
+    conn?.credential_ref || process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+  if (!apiKey) {
+    return { error: "Scanning a page needs an OpenAI key. Connect one in Settings, or paste the text." };
+  }
+
+  try {
+    const text = await ocrImage(apiKey, imageUrl);
+    if (!text || !text.trim()) return { error: "No readable text found in that image." };
+    return { text, path };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
 }
 
 export async function uploadImage(formData: FormData): Promise<void> {
