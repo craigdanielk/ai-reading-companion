@@ -19,6 +19,8 @@ export interface ProviderConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  /** byok = the reader's own key; platform = the shared default. */
+  origin: "byok" | "platform";
 }
 
 function platformKey(provider: string): string | undefined {
@@ -52,6 +54,7 @@ export async function resolveProviderConfig(): Promise<ProviderConfig | null> {
         baseUrl: PROVIDERS[conn.provider].baseUrl,
         apiKey: conn.credential_ref,
         model: (conn.model as string) || PROVIDERS[conn.provider].model,
+        origin: "byok",
       };
     }
   }
@@ -65,13 +68,20 @@ export async function resolveProviderConfig(): Promise<ProviderConfig | null> {
         baseUrl: PROVIDERS[platformProvider].baseUrl,
         apiKey: key,
         model: process.env.PLATFORM_MODEL || PROVIDERS[platformProvider].model,
+        origin: "platform",
       };
     }
   }
 
   const dsKey = process.env.DEEPSEEK_API_KEY;
   if (dsKey) {
-    return { provider: "deepseek", baseUrl: PROVIDERS.deepseek.baseUrl, apiKey: dsKey, model: PROVIDERS.deepseek.model };
+    return {
+      provider: "deepseek",
+      baseUrl: PROVIDERS.deepseek.baseUrl,
+      apiKey: dsKey,
+      model: PROVIDERS.deepseek.model,
+      origin: "platform",
+    };
   }
   return null;
 }

@@ -12,8 +12,9 @@ export default function PrivacyPage() {
       <ul className="prose-measure mt-6 space-y-3 text-[15px] text-ink-soft">
         <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />Content you paste or upload is private to your account (row-level security).</li>
         <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />Your text is sent to the AI provider you select — or the platform default — for comprehension. Third-party processing is inherent to the AI features.</li>
+        <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />Uploaded page images are processed by a third-party vision model (OCR) to extract text.</li>
         <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />No public sharing of uploaded pages or processed content.</li>
-        <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />We minimise stored data; images are kept only as needed.</li>
+        <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />Uploaded images are retained in storage for now; a deletion and retention policy is an open item before launch.</li>
         <li className="flex gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />Do not upload content you are not authorised to process. Copyright and translation rights are a known risk area.</li>
       </ul>
       <p className="prose-measure mt-8 rounded-card border border-line bg-paper-2/50 p-4 text-sm text-muted">

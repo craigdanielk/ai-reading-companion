@@ -8,6 +8,7 @@ import {
 } from "@/lib/providers/prompt";
 import { parseSections, parsePageSections } from "@/lib/providers/parse";
 import { snapRange } from "@/lib/text/range";
+import { estimateCost } from "@/lib/cost";
 import type { ComprehensionDepth } from "@/lib/providers/types";
 import type { DomainCode } from "@/lib/nuance/registry";
 
@@ -86,6 +87,8 @@ export async function POST(req: Request) {
       ],
       stream: true,
       temperature: 0.3,
+      // request token usage on the final chunk so we can record cost
+      stream_options: { include_usage: true },
     }),
   });
 
@@ -97,6 +100,7 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let full_out = "";
+  const usage = { prompt_tokens: 0, completion_tokens: 0 };
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -116,6 +120,10 @@ export async function POST(req: Request) {
             if (!payload || payload === "[DONE]") continue;
             try {
               const j = JSON.parse(payload);
+              if (j.usage) {
+                usage.prompt_tokens = j.usage.prompt_tokens ?? usage.prompt_tokens;
+                usage.completion_tokens = j.usage.completion_tokens ?? usage.completion_tokens;
+              }
               const delta = j.choices?.[0]?.delta?.content || "";
               if (delta) {
                 full_out += delta;
@@ -184,7 +192,21 @@ export async function POST(req: Request) {
           .eq("content_item_id", contentItemId)
           .maybeSingle();
         const prev = (u?.counters ?? {}) as Record<string, number>;
-        const counters = { ...prev, comprehends: (prev.comprehends || 0) + 1 };
+
+        // Cost is an estimate from tokens and a published per-model rate, split so
+        // the reader can see what their own key (BYOK) cost vs the platform default.
+        const cost = estimateCost(cfg.model, usage.prompt_tokens, usage.completion_tokens);
+        const origin = cfg.origin || "platform";
+        const counters = {
+          ...prev,
+          comprehends: (prev.comprehends || 0) + 1,
+          prompt_tokens: (prev.prompt_tokens || 0) + usage.prompt_tokens,
+          completion_tokens: (prev.completion_tokens || 0) + usage.completion_tokens,
+          cost_usd: round((prev.cost_usd || 0) + cost),
+          [origin + "_calls"]: (prev[origin + "_calls"] || 0) + 1,
+          [origin + "_cost_usd"]: round((prev[origin + "_cost_usd"] || 0) + cost),
+          last_model: cfg.model,
+        };
         if (u) await supabase.from("usage").update({ counters, last_position: now }).eq("id", u.id);
         else
           await supabase
@@ -205,6 +227,10 @@ export async function POST(req: Request) {
       "X-Accel-Buffering": "no",
     },
   });
+}
+
+function round(n: number): number {
+  return Math.round(n * 1000000) / 1000000;
 }
 
 type Sb = Awaited<ReturnType<typeof createClient>>;

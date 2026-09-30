@@ -10,7 +10,6 @@ const DEMO_PASSWORD = "AdelDemo2026!Secure";
 export default function LoginPage() {
   const [email, setEmail] = useState(DEMO_EMAIL);
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [message, setMessage] = useState("");
   const [user, setUser] = useState<string | null>(null);
   const supabase = createClient();
@@ -23,15 +22,12 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage("");
-    const { error } =
-      mode === "signup"
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setMessage(error.message);
     else {
       const { data } = await supabase.auth.getUser();
       setUser(data.user?.email ?? null);
-      setMessage(mode === "signup" ? "Account created — check your email to confirm." : "Signed in.");
+      setMessage("Signed in.");
     }
   }
 
@@ -100,15 +96,11 @@ export default function LoginPage() {
               type="submit"
               className="w-full rounded-pill border border-line px-4 py-3 font-medium transition-colors hover:bg-paper-2"
             >
-              {mode === "signup" ? "Sign up" : "Sign in"}
+              Sign in
             </button>
-            <button
-              type="button"
-              onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-              className="w-full py-1 text-sm text-ink-soft hover:text-ember"
-            >
-              {mode === "signup" ? "Have an account? Sign in" : "Need an account? Sign up"}
-            </button>
+            <p className="w-full py-1 text-center text-xs text-muted">
+              Private beta — access is by invitation.
+            </p>
           </form>
 
           <div className="mt-6 rounded-card border border-line bg-paper-2/50 p-4 text-xs text-ink-soft">
