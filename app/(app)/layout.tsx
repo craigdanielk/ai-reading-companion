@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5 md:hidden">
+        <header className="glass-bar sticky top-0 z-30 flex items-center justify-between gap-3 px-4 py-2.5 md:hidden">
           <Link href="/library" className="flex items-center gap-2">
             <Image src="/brand/svg/jeralis-mark.svg" alt="" width={24} height={24} priority />
             <span className="font-display text-[13px] font-semibold">Jeralis</span>

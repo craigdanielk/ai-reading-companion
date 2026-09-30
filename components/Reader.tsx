@@ -598,12 +598,12 @@ export function Reader({
   ) : null;
 
   const settingsPanel = settingsOpen ? (
-    <div className="relative mt-3">
+    <>
       <button className="fixed inset-0 z-30 cursor-default" onClick={() => setSettingsOpen(false)} aria-label="Close" />
-      <div className="relative z-40 w-[min(22rem,100%)] rounded-card border border-line bg-paper p-4 shadow-sm">
+      <div className="glass fixed right-3 top-14 z-40 w-[min(22rem,calc(100vw-1.5rem))] rounded-glass p-4 lg:right-6">
         <AppearancePanel appearance={appearance} onChange={applyAppearance} />
       </div>
-    </div>
+    </>
   ) : null;
 
   const hintAndError = (
@@ -624,7 +624,7 @@ export function Reader({
   const aaButton = (
     <button
       onClick={() => setSettingsOpen((v) => !v)}
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line font-display text-[13px] font-semibold text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink"
+      className="glass-clear glass-press inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold text-ink-soft hover:text-ink"
       aria-label="Reading appearance"
       title="Reading appearance"
     >
@@ -659,7 +659,7 @@ export function Reader({
 
       {appearance.paged ? (
         <>
-          <div className="flex shrink-0 items-center gap-3 px-5 py-2.5 lg:px-10">
+          <div className="glass-bar flex shrink-0 items-center gap-3 px-5 py-2.5 lg:px-10">
             <h1 className="min-w-0 truncate font-display text-[15px] font-semibold text-ink">{title}</h1>
             <span className="hidden shrink-0 text-[12px] text-muted sm:inline">
               {sourceLanguage === "auto" ? "detected" : findLanguage(sourceLanguage)?.name} &rarr; {targetName}
@@ -714,7 +714,7 @@ export function Reader({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center justify-between gap-4 border-t border-line px-5 py-3 lg:px-10">
+          <div className="glass-bar flex shrink-0 items-center justify-between gap-4 border-t border-b-0 px-5 py-3 lg:px-10">
             <button
               onClick={() => turn(-1)}
               disabled={page === 0}
@@ -759,7 +759,7 @@ export function Reader({
         </header>
 
         {/* toolbar — the reading controls, always reachable */}
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted">
+        <div className="glass sticky top-[3px] z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-pill px-4 py-2 text-[12px] text-muted">
           <button
             onClick={() => void run(null, "page")}
             disabled={!canRun}
@@ -803,7 +803,7 @@ export function Reader({
       {popover && (
         <button
           style={{ top: popover.top, left: popover.left }}
-          className="fixed z-40 -translate-x-1/2 rounded-pill bg-ink px-3.5 py-2 text-[12px] font-medium text-paper shadow-lg"
+          className="glass glass-press fixed z-40 -translate-x-1/2 rounded-pill px-4 py-2 text-[12px] font-medium text-ink"
           onClick={() => void run({ start: popover.start, end: popover.end }, "passage")}
         >
           Understand this
