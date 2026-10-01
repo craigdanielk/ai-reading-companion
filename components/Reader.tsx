@@ -290,7 +290,9 @@ export function Reader({
   }, [pending, blocks]);
 
   const wholeText = live?.mode === "page" ? live : pageNote;
-  const targetName = findLanguage(targetLanguage)?.name || targetLanguage;
+  // The header follows the reader's live choice, not the language the text was
+  // filed under — otherwise it would claim English while rendering Spanish.
+  const targetName = findLanguage(intoLang)?.name || intoLang;
   const hasAny = Boolean(wholeText) || glossByBlock.size > 0 || Boolean(live && live.mode === "passage");
 
   async function run(selection: Range | null, scope: Scope, actionId: string = DEFAULT_ACTION) {
@@ -886,7 +888,7 @@ export function Reader({
             <LangBadge code={sourceLanguage} size="sm" />
             <span>{sourceLanguage === "auto" ? "detected" : findLanguage(sourceLanguage)?.name}</span>
             <span className="text-line">&rarr;</span>
-            <LangBadge code={targetLanguage} size="sm" />
+            <LangBadge code={intoLang} size="sm" />
             <span>{targetName}</span>
             {domain !== "general" && <span>&middot; {domain}</span>}
           </div>

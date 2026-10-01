@@ -44,13 +44,17 @@ def cleanup_created(page):
     for bid in list(CREATED):
         try:
             page.goto(BASE_URL + "/book/" + bid)
-            page.wait_for_timeout(700)
-            page.click("summary:has-text('Reading settings')")
-            page.wait_for_timeout(300)
-            page.click("summary:has-text('Book details')")
-            page.wait_for_timeout(300)
+            page.wait_for_timeout(900)
+            # Open every disclosure rather than toggling a named one: clicking a
+            # summary that is already open closes it, and the delete control then
+            # never appears. A silent failure here leaves debris in the demo.
+            page.evaluate("document.querySelectorAll('details').forEach(d => { d.open = true })")
+            page.wait_for_timeout(400)
             page.click("button:has-text('Delete this text')")
-            page.wait_for_timeout(1200)
-        except Exception:
-            pass
+            page.wait_for_timeout(1800)
+            if "/book/" in page.url:
+                raise RuntimeError("still on the book page after delete")
+        except Exception as e:
+            print("CLEANUP FAILED for " + bid + ": " + str(e)[:160])
+    CREATED.clear()
     CREATED.clear()
