@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveProviderConfig } from "@/lib/providers/resolve";
 import {
   buildSystemPrompt,
@@ -193,25 +194,35 @@ export async function POST(req: Request) {
           .maybeSingle();
         const prev = (u?.counters ?? {}) as Record<string, number>;
 
-        // Cost is an estimate from tokens and a published per-model rate, split so
-        // the reader can see what their own key (BYOK) cost vs the platform default.
-        const cost = estimateCost(cfg.model, usage.prompt_tokens, usage.completion_tokens);
+        // The reader's own usage row is readable by them, so it carries activity
+        // only — never cost. The reader sees that they read; the operator sees
+        // what it cost.
         const origin = cfg.origin || "platform";
         const counters = {
           ...prev,
           comprehends: (prev.comprehends || 0) + 1,
-          prompt_tokens: (prev.prompt_tokens || 0) + usage.prompt_tokens,
-          completion_tokens: (prev.completion_tokens || 0) + usage.completion_tokens,
-          cost_usd: round((prev.cost_usd || 0) + cost),
           [origin + "_calls"]: (prev[origin + "_calls"] || 0) + 1,
-          [origin + "_cost_usd"]: round((prev[origin + "_cost_usd"] || 0) + cost),
-          last_model: cfg.model,
         };
         if (u) await supabase.from("usage").update({ counters, last_position: now }).eq("id", u.id);
         else
           await supabase
             .from("usage")
             .insert({ user_id: auth.user.id, content_item_id: contentItemId, counters, last_position: now });
+
+        // Cost and token detail go to the operator-only ledger.
+        const cost = estimateCost(cfg.model, usage.prompt_tokens, usage.completion_tokens);
+        const admin = createAdminClient();
+        const { error: ledgerErr } = await admin.from("cost_ledger").insert({
+          user_id: auth.user.id,
+          content_item_id: contentItemId,
+          provider: cfg.provider,
+          origin,
+          model: cfg.model,
+          prompt_tokens: usage.prompt_tokens,
+          completion_tokens: usage.completion_tokens,
+          cost_usd: round(cost),
+        });
+        if (ledgerErr) console.error("cost_ledger insert:", ledgerErr.message);
       } catch (e) {
         console.error("persist error:", (e as Error).message);
       } finally {

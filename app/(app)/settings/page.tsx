@@ -6,6 +6,7 @@ const ITEMS = [
   { href: "/settings/preferences", t: "Reading preferences", d: "Default source and target language, domain and depth applied to new content." },
   { href: "/settings/providers", t: "AI providers", d: "Connect your own OpenAI, DeepSeek or Mistral account, or use the platform default." },
   { href: "/settings/account", t: "Account", d: "Your email address and session." },
+  { href: "/admin", t: "Operations", d: "Cost, readers and invitations. Operator only." },
 ];
 
 export default function SettingsPage() {

@@ -8,6 +8,7 @@ import { ocrImage } from "@/lib/providers/ocr";
 import { findKind, DEFAULT_KIND, TEXT_KINDS } from "@/lib/text-kinds";
 import { extractDocument, detectDocKind, titleFromFilename } from "@/lib/extract/document";
 import { ocrPdf } from "@/lib/providers/ocr";
+import { isAdmin } from "@/lib/admin";
 
 const DEMO_EMAIL = "demo@adel.dev";
 const DEMO_PASSWORD = "AdelDemo2026!Secure";
@@ -47,6 +48,41 @@ async function sectionUrl(
   return data?.book_id ? "/book/" + data.book_id : "/passage/" + contentItemId;
 }
 
+/** Operator-only: mint an invite link for a new reader. */
+export async function inviteReader(
+  _prev: unknown,
+  formData: FormData
+): Promise<{ link?: string; email?: string; error?: string } | null> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user || !isAdmin(auth.user.email)) return { error: "Not authorised." };
+
+  const email = ((formData.get("email") as string) || "").trim().toLowerCase();
+  if (!email.includes("@")) return { error: "Enter a valid email address." };
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.generateLink({ type: "invite", email });
+  if (error) return { error: error.message };
+  return { link: data?.properties?.action_link ?? "", email };
+}
+
+/** Operator-only: mint a password-reset link for someone locked out. */
+export async function recoveryLink(
+  _prev: unknown,
+  formData: FormData
+): Promise<{ link?: string; email?: string; error?: string } | null> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user || !isAdmin(auth.user.email)) return { error: "Not authorised." };
+
+  const email = ((formData.get("email") as string) || "").trim().toLowerCase();
+  if (!email.includes("@")) return { error: "Enter a valid email address." };
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email });
+  if (error) return { error: error.message };
+  return { link: data?.properties?.action_link ?? "", email };
+}
 export async function devLogin(): Promise<void> {
   const admin = createAdminClient();
 
