@@ -799,10 +799,11 @@ export function Reader({
                 </button>
               )}
               <button
+                data-testid="whole-text-action"
                 onClick={() => {
-              setPopover(null);
-              setMenuOpen((v) => !v);
-            }}
+                  setPopover(null);
+                  setMenuOpen((v) => !v);
+                }}
                 disabled={!canRun}
                 className="underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
               >
@@ -894,6 +895,7 @@ export function Reader({
         {/* toolbar — the reading controls, always reachable */}
         <div className="glass sticky top-[3px] z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-pill px-4 py-2 text-[12px] text-muted">
           <button
+            data-testid="whole-text-action"
             onClick={() => {
               setPopover(null);
               setMenuOpen((v) => !v);

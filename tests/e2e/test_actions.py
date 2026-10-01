@@ -7,7 +7,8 @@ def select_in_first_paragraph(page, start=0, end=7):
     page.evaluate(
         """([s, e]) => {
           const p = document.querySelector('[data-start]');
-          const node = p.firstChild;
+          // The paragraph renders its text inside spans, so walk to a text node.
+          const node = document.createTreeWalker(p, NodeFilter.SHOW_TEXT).nextNode();
           const r = document.createRange();
           r.setStart(node, s);
           r.setEnd(node, e);
@@ -70,7 +71,7 @@ def test_the_whole_text_offers_only_the_verbs_that_make_sense(page):
     assert href
     page.goto(BASE_URL + href)
     page.wait_for_timeout(1500)
-    page.get_by_role("button", name="Understand the whole text").click()
+    page.locator("[data-testid=whole-text-action]").first.click()
     page.wait_for_timeout(500)
     menu = page.locator("[data-testid=action-menu]")
     assert menu.count() == 1, "the whole-text control should open the menu"
