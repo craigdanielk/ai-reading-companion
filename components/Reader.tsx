@@ -18,6 +18,11 @@ export interface Result {
   explanation: string | null;
 }
 
+export interface NoteRow {
+  id: string;
+  body: string | null;
+}
+
 export interface SelectionRow {
   id: string;
   start: number;
@@ -179,6 +184,8 @@ export function Reader({
   focusSelection,
   reading,
   initialFraction,
+  notes,
+  onAddNote,
 }: {
   contentItemId: string;
   title: string;
@@ -193,6 +200,8 @@ export function Reader({
   focusSelection?: string | null;
   reading: ReadingAppearance;
   initialFraction: number | null;
+  notes: NoteRow[];
+  onAddNote: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -218,6 +227,7 @@ export function Reader({
   const [pending, setPending] = useState<Range | null>(null);
   const [popover, setPopover] = useState<{ start: number; end: number; top: number; left: number } | null>(null);
   const [focusedBlock, setFocusedBlock] = useState(-1);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   // paged reading
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -609,6 +619,60 @@ export function Reader({
     </>
   ) : null;
 
+  const notesSheet = notesOpen ? (
+    <>
+      <button
+        className="fixed inset-0 z-40 cursor-default bg-ink/20"
+        onClick={() => setNotesOpen(false)}
+        aria-label="Close"
+      />
+      <div className="glass glass-in fixed inset-x-3 bottom-3 z-50 max-h-[80dvh] overflow-y-auto rounded-sheet p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[24rem]">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="font-display text-[13px] font-semibold text-ink">Your notes</span>
+          <button onClick={() => setNotesOpen(false)} className="text-[12px] text-muted transition-colors hover:text-ink">
+            Close
+          </button>
+        </div>
+
+        {notes.length === 0 ? (
+          <p className="text-[12.5px] leading-relaxed text-muted">
+            Nothing yet. A note is yours — it sits beside what the AI understood, and stays.
+          </p>
+        ) : (
+          <ul className="space-y-2.5">
+            {notes.map((n) => (
+              <li key={n.id} className="border-l-2 border-sun/70 pl-3 text-[13px] leading-relaxed text-ink-soft">
+                {n.body}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={onAddNote} className="mt-4">
+          <input type="hidden" name="content_item_id" value={contentItemId} />
+          <textarea
+            name="body"
+            rows={3}
+            placeholder="Add a note…"
+            className="w-full resize-y rounded-input border border-line bg-paper px-3 py-2 text-[13.5px] leading-relaxed text-ink placeholder:text-muted"
+          />
+          <button type="submit" className="mt-2 rounded-pill bg-ink px-3.5 py-2 text-[12.5px] font-medium text-paper">
+            Save note
+          </button>
+        </form>
+      </div>
+    </>
+  ) : null;
+
+  const notesButton = (
+    <button
+      onClick={() => setNotesOpen((v) => !v)}
+      className="shrink-0 text-[12px] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink"
+    >
+      notes{notes.length > 0 ? " (" + notes.length + ")" : ""}
+    </button>
+  );
+
   const hintAndError = (
     <>
       {!hasAny && !running && canRun && (
@@ -682,11 +746,13 @@ export function Reader({
               >
                 whole text
               </button>
+              {notesButton}
               {aaButton}
             </div>
           </div>
 
           {settingsPanel}
+          {notesSheet}
           {hintAndError}
 
           <div
@@ -777,17 +843,14 @@ export function Reader({
               Stop
             </button>
           )}
-          <button
-            onClick={() => setSettingsOpen((v) => !v)}
-            className="ml-auto inline-flex h-7 w-7 items-center justify-center rounded-full border border-line font-display text-[13px] font-semibold text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink"
-            aria-label="Reading appearance"
-            title="Reading appearance"
-          >
-            Aa
-          </button>
+          <span className="ml-auto flex items-center gap-3">
+            {notesButton}
+            {aaButton}
+          </span>
         </div>
 
         {settingsPanel}
+        {notesSheet}
         {hintAndError}
 
         <div

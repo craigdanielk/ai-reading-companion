@@ -7,9 +7,32 @@ import { resolveProvider } from "@/lib/providers/resolve";
 import { ocrImage } from "@/lib/providers/ocr";
 import { findKind, DEFAULT_KIND, TEXT_KINDS } from "@/lib/text-kinds";
 import { extractDocument, detectDocKind, titleFromFilename } from "@/lib/extract/document";
+import { ocrPdf } from "@/lib/providers/ocr";
 
 const DEMO_EMAIL = "demo@adel.dev";
 const DEMO_PASSWORD = "AdelDemo2026!Secure";
+
+/**
+ * The reader's own OpenAI key (decrypted from Vault, ownership-checked in the
+ * database) or the platform's. credential_ref is a Vault secret id, never a key,
+ * so it must not be used as one.
+ */
+async function openAiKey(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<string | null> {
+  const { data: conn } = await supabase
+    .from("provider_connection")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("provider", "openai")
+    .maybeSingle();
+  if (conn?.id) {
+    const { data: secret } = await supabase.rpc("fn_provider_credential", { p_connection_id: conn.id });
+    if (typeof secret === "string" && secret) return secret;
+  }
+  return process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || null;
+}
 
 // A section of a book reads at the book's URL; an unfiled one reads standalone.
 async function sectionUrl(
@@ -53,44 +76,6 @@ export async function devLogin(): Promise<void> {
   });
   if (error) console.error("devLogin:", error.message);
   redirect("/library");
-}
-
-export async function createContentItem(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-
-  const { data: item, error } = await supabase
-    .from("content_item")
-    .insert({
-      user_id: data.user.id,
-      kind: (formData.get("kind") as string) || "text",
-      title: (formData.get("title") as string) || null,
-      source: (formData.get("source") as string) || null,
-      body_text: (formData.get("body_text") as string) || null,
-    })
-    .select("id")
-    .single();
-  if (error || !item) {
-    console.error("createContentItem:", error?.message);
-    redirect("/library");
-  }
-
-  // seed the per-content comprehension profile from the reader's saved defaults
-  const { data: prefs } = await supabase
-    .from("user_preference")
-    .select("*")
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-  await supabase.from("content_profile").insert({
-    content_item_id: item.id,
-    source_language: prefs?.default_source_language || "auto",
-    target_language: prefs?.default_target_language || "en",
-    domain: prefs?.default_domain || "general",
-    comprehension_depth: prefs?.default_depth || "intermediate",
-  });
-
-  redirect(await sectionUrl(supabase, item.id));
 }
 
 export async function setContentProfile(formData: FormData): Promise<void> {
@@ -146,98 +131,6 @@ export async function updateBodyText(formData: FormData): Promise<void> {
   redirect(await sectionUrl(supabase, id));
 }
 
-export async function understand(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-
-  const content_item_id = formData.get("content_item_id") as string;
-  const { data: item } = await supabase
-    .from("content_item")
-    .select("*")
-    .eq("id", content_item_id)
-    .single();
-  const text = item?.body_text;
-  if (!text) redirect(await sectionUrl(supabase, content_item_id));
-
-  const { data: profile } = await supabase
-    .from("content_profile")
-    .select("*")
-    .eq("content_item_id", content_item_id)
-    .maybeSingle();
-  const target_language = profile?.target_language || "en";
-  const comprehension_depth = profile?.comprehension_depth || "intermediate";
-  const domain = (profile?.domain as "general" | "literary" | "scientific" | "legal") || "general";
-  const source_language = (profile?.source_language as string) || "auto";
-
-  let etId: string;
-  const { data: existingEt } = await supabase
-    .from("extracted_text")
-    .select("id")
-    .eq("content_item_id", content_item_id)
-    .maybeSingle();
-  if (existingEt) {
-    etId = existingEt.id;
-    await supabase.from("extracted_text").update({ raw_text: text, corrected_text: text }).eq("id", etId);
-  } else {
-    const { data: newEt } = await supabase
-      .from("extracted_text")
-      .insert({ content_item_id, raw_text: text, corrected_text: text })
-      .select("id")
-      .single();
-    if (!newEt) {
-      console.error("understand: failed to create extracted_text");
-      redirect(await sectionUrl(supabase, content_item_id));
-    }
-    etId = newEt.id;
-  }
-
-  try {
-    const provider = await resolveProvider();
-    const result = await provider.comprehend({
-      text,
-      sourceLanguage: source_language,
-      targetLanguage: target_language,
-      comprehensionDepth: comprehension_depth as "beginner" | "intermediate" | "advanced",
-      domain,
-    });
-    const { error } = await supabase.from("ai_result").insert({
-      extracted_text_id: etId,
-      original: result.original,
-      understanding: result.understanding,
-      terms: result.importantTerms,
-      key_idea: result.keyIdea,
-      explanation: result.explanation,
-    });
-    if (error) console.error("understand insert:", error.message);
-  } catch (e) {
-    console.error("understand provider:", (e as Error).message);
-  }
-
-  // track usage (T14)
-  const now = new Date().toISOString();
-  const { data: usageRow } = await supabase
-    .from("usage")
-    .select("id, counters")
-    .eq("user_id", data.user.id)
-    .eq("content_item_id", content_item_id)
-    .maybeSingle();
-  const prev = (usageRow?.counters ?? {}) as Record<string, number>;
-  const counters = { ...prev, comprehends: (prev.comprehends || 0) + 1 };
-  if (usageRow) {
-    await supabase.from("usage").update({ counters, last_position: now }).eq("id", usageRow.id);
-  } else {
-    await supabase.from("usage").insert({
-      user_id: data.user.id,
-      content_item_id,
-      counters,
-      last_position: now,
-    });
-  }
-
-  redirect(await sectionUrl(supabase, content_item_id));
-}
-
 export async function addNote(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -253,29 +146,6 @@ export async function addNote(formData: FormData): Promise<void> {
     kind: "personal",
   });
   if (error) console.error("addNote:", error.message);
-  redirect(await sectionUrl(supabase, content_item_id));
-}
-
-export async function saveResultToNotes(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-
-  const content_item_id = formData.get("content_item_id") as string;
-  const ai_result_id = formData.get("ai_result_id") as string;
-  const { data: result } = await supabase
-    .from("ai_result")
-    .select("understanding")
-    .eq("id", ai_result_id)
-    .single();
-
-  const { error } = await supabase.from("note").insert({
-    content_item_id,
-    source_ai_result_id: ai_result_id,
-    body: result?.understanding || "",
-    kind: "ai",
-  });
-  if (error) console.error("saveResultToNotes:", error.message);
   redirect(await sectionUrl(supabase, content_item_id));
 }
 
@@ -323,6 +193,37 @@ export async function updateBook(formData: FormData): Promise<void> {
 // Deleting a text means deleting the text: its sections, what was understood in
 // them, and the source files. Leaving sections "unfiled" left ghosts, and
 // leaving the files behind orphaned storage that nothing would ever collect.
+/** C2: where the text came from. */
+export async function setSectionSource(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const content_item_id = formData.get("content_item_id") as string;
+  const source = ((formData.get("source") as string) || "").trim() || null;
+  const { error } = await supabase.from("content_item").update({ source }).eq("id", content_item_id);
+  if (error) console.error("setSectionSource:", error.message);
+  redirect(await sectionUrl(supabase, content_item_id));
+}
+
+/** C2: an optional cover for the text. Stored privately, signed on read. */
+export async function uploadCover(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+
+  const id = formData.get("id") as string;
+  const file = formData.get("cover") as File | null;
+  if (file && file.size > 0 && (file.type || "").startsWith("image/")) {
+    const safe = (file.name || "cover").replace(/[^a-zA-Z0-9._-]/g, "_").slice(-40);
+    const path = data.user.id + "/covers/" + id + "-" + Date.now() + "-" + safe;
+    const { error } = await supabase.storage.from("content").upload(path, file);
+    if (error) console.error("uploadCover:", error.message);
+    else await supabase.from("book").update({ cover_url: path }).eq("id", id);
+  }
+  redirect("/book/" + id);
+}
+
 export async function deleteBook(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -400,10 +301,12 @@ export async function createText(formData: FormData): Promise<void> {
   const position = existing?.length ?? 0;
 
   const storage_ref = ((formData.get("storage_ref") as string) || "") || null;
+  const askedMedium = (formData.get("medium") as string) || "typed";
+  const medium = ["typed", "image", "document"].includes(askedMedium) ? askedMedium : "typed";
 
   const { data: item, error } = await supabase
     .from("content_item")
-    .insert({ user_id: data.user.id, book_id: bookId, kind: "text", title, body_text, position, storage_ref })
+    .insert({ user_id: data.user.id, book_id: bookId, kind: "text", title, body_text, position, storage_ref, medium })
     .select("id")
     .single();
   if (error || !item) {
@@ -546,16 +449,7 @@ export async function ocrFromUpload(
   const imageUrl = signed?.signedUrl;
   if (!imageUrl) return { error: "Could not read the uploaded image." };
 
-  // OCR needs an OpenAI-compatible vision model: the reader's own key first,
-  // then the platform's, so a scan works before BYOK is configured.
-  const { data: conn } = await supabase
-    .from("provider_connection")
-    .select("credential_ref")
-    .eq("user_id", auth.user.id)
-    .eq("provider", "openai")
-    .maybeSingle();
-  const apiKey =
-    conn?.credential_ref || process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+  const apiKey = await openAiKey(supabase, auth.user.id);
   if (!apiKey) {
     return { error: "Scanning a page needs an OpenAI key. Connect one in Settings, or paste the text." };
   }
@@ -575,7 +469,16 @@ export async function ocrFromUpload(
  */
 export async function importDocument(
   formData: FormData
-): Promise<{ text?: string; title?: string; kind?: string; warning?: string; error?: string; path?: string }> {
+): Promise<{
+  text?: string;
+  title?: string;
+  kind?: string;
+  warning?: string;
+  error?: string;
+  path?: string;
+  medium?: string;
+  truncated?: boolean;
+}> {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return { error: "Not signed in" };
@@ -597,6 +500,40 @@ export async function importDocument(
 
   try {
     const r = await extractDocument(file);
+
+    // R6: a PDF with no text layer is a scan. The vision model can read the PDF
+    // directly, so try that before telling the reader to do it by hand.
+    if (r.needsVision) {
+      if (file.size > 8 * 1024 * 1024) {
+        return {
+          warning:
+            "That PDF is a scan and too large to read in one pass. Upload its pages as images instead.",
+        };
+      }
+      const key = await openAiKey(supabase, auth.user.id);
+      if (!key) {
+        return {
+          error: "Reading a scanned PDF needs an OpenAI key. Connect one in Settings, or upload the pages as images.",
+        };
+      }
+      try {
+        const text = await ocrPdf(key, await file.arrayBuffer());
+        if (text.trim()) {
+          return {
+            text: text.slice(0, 600000),
+            title: titleFromFilename(file.name),
+            kind: "pdf",
+            path,
+            medium: "document",
+            warning: "This PDF is a scan, so the text was read from the page images.",
+          };
+        }
+      } catch (e) {
+        console.error("importDocument scan:", (e as Error).message);
+      }
+      return { warning: "That scanned PDF could not be read. Try uploading its pages as images." };
+    }
+
     if (!r.text.trim()) {
       return { warning: r.warning || "No readable text was found in that file." };
     }
@@ -606,84 +543,11 @@ export async function importDocument(
       kind: r.kind,
       warning: r.warning,
       path,
+      medium: "document",
+      truncated: r.truncated,
     };
   } catch (e) {
     console.error("importDocument:", (e as Error).message);
     return { error: "That file could not be read. It may be corrupt or password-protected." };
   }
-}
-
-export async function uploadImage(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-
-  const content_item_id = formData.get("content_item_id") as string;
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) redirect(await sectionUrl(supabase, content_item_id));
-
-  const path = data.user.id + "/" + content_item_id + "/" + file.name;
-  const { error } = await supabase.storage.from("content").upload(path, file);
-  if (error) {
-    console.error("uploadImage:", error.message);
-  } else {
-    await supabase.from("content_item").update({ storage_ref: path }).eq("id", content_item_id);
-  }
-  redirect(await sectionUrl(supabase, content_item_id));
-}
-
-export async function extractText(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/login");
-
-  const content_item_id = formData.get("content_item_id") as string;
-  const { data: item } = await supabase
-    .from("content_item")
-    .select("storage_ref")
-    .eq("id", content_item_id)
-    .single();
-  const path = item?.storage_ref;
-  if (!path) redirect(await sectionUrl(supabase, content_item_id));
-
-  const { data: signed } = await supabase.storage
-    .from("content")
-    .createSignedUrl(path, 120);
-  const imageUrl = signed?.signedUrl;
-  if (!imageUrl) redirect(await sectionUrl(supabase, content_item_id));
-
-  const { data: conn } = await supabase
-    .from("provider_connection")
-    .select("*")
-    .eq("user_id", data.user.id)
-    .eq("provider", "openai")
-    .maybeSingle();
-  const apiKey = conn?.credential_ref;
-  if (!apiKey) {
-    console.error("extractText: OCR requires a connected OpenAI provider (BYOK)");
-    redirect(await sectionUrl(supabase, content_item_id));
-  }
-
-  try {
-    const text = await ocrImage(apiKey, imageUrl);
-    const { data: existingEt } = await supabase
-      .from("extracted_text")
-      .select("id")
-      .eq("content_item_id", content_item_id)
-      .maybeSingle();
-    if (existingEt) {
-      await supabase
-        .from("extracted_text")
-        .update({ raw_text: text, corrected_text: text })
-        .eq("id", existingEt.id);
-    } else {
-      await supabase
-        .from("extracted_text")
-        .insert({ content_item_id, raw_text: text, corrected_text: text });
-    }
-    await supabase.from("content_item").update({ body_text: text }).eq("id", content_item_id);
-  } catch (e) {
-    console.error("extractText:", (e as Error).message);
-  }
-  redirect(await sectionUrl(supabase, content_item_id));
 }

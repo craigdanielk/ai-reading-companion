@@ -13,6 +13,10 @@ export interface ExtractedDocument {
   kind: DocKind;
   pages?: number;
   warning?: string;
+  /** R8: the document was longer than the cap and has been cut. */
+  truncated?: boolean;
+  /** R6: a PDF with no text layer, which only a vision model can read. */
+  needsVision?: boolean;
 }
 
 export function detectDocKind(name: string, mime: string): DocKind {
@@ -145,14 +149,9 @@ export async function extractDocument(file: File): Promise<ExtractedDocument> {
     const { text, totalPages } = await extractText(buf, { mergePages: true });
     const body = (Array.isArray(text) ? text.join("\n\n") : text || "").trim();
     if (!body) {
-      return {
-        text: "",
-        kind,
-        pages: totalPages,
-        warning: "That PDF has no extractable text — it is probably a scan. Upload it as an image instead.",
-      };
+      return { text: "", kind, pages: totalPages, needsVision: true };
     }
-    return { text: body.slice(0, MAX_CHARS), kind, pages: totalPages };
+    return { text: body.slice(0, MAX_CHARS), kind, pages: totalPages, truncated: body.length > MAX_CHARS };
   }
 
   if (kind === "docx") {

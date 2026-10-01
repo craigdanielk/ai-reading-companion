@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateBook, deleteBook, updateBodyText, setContentProfile } from "@/app/actions";
+import {
+  updateBook,
+  deleteBook,
+  updateBodyText,
+  setContentProfile,
+  addNote,
+  setSectionSource,
+  uploadCover,
+} from "@/app/actions";
+import { coverUrl } from "@/lib/covers";
 import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { Compose } from "@/components/Compose";
@@ -10,6 +19,12 @@ import { KindBadge } from "@/components/KindBadge";
 import { TextList } from "@/components/TextList";
 import { DOMAINS } from "@/lib/nuance/registry";
 import { TEXT_KINDS } from "@/lib/text-kinds";
+
+const MEDIUM_LABEL: Record<string, string> = {
+  typed: "typed",
+  image: "read from an image",
+  document: "opened from a file",
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,7 +54,7 @@ export default async function BookPage({
 
   const { data: sections } = await supabase
     .from("content_item")
-    .select("id, title, body_text, position, created_at")
+    .select("id, title, body_text, position, created_at, source, medium")
     .eq("book_id", id)
     .order("position", { ascending: true })
     .order("created_at", { ascending: true });
@@ -47,7 +62,7 @@ export default async function BookPage({
   const list = sections ?? [];
   const current = list.find((x) => x.id === s) ?? list[0] ?? null;
 
-  const [{ data: profile }, reader, noteCount, { data: prefs }, { data: usage }] = await Promise.all([
+  const [{ data: profile }, reader, noteCount, { data: prefs }, { data: usage }, { data: personalNotes }] = await Promise.all([
     current
       ? supabase.from("content_profile").select("*").eq("content_item_id", current.id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -65,6 +80,14 @@ export default async function BookPage({
     current
       ? supabase.from("usage").select("counters").eq("content_item_id", current.id).maybeSingle()
       : Promise.resolve({ data: null }),
+    current
+      ? supabase
+          .from("note")
+          .select("id, body")
+          .eq("content_item_id", current.id)
+          .eq("kind", "personal")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
   ]);
 
   const reading = {
@@ -76,6 +99,7 @@ export default async function BookPage({
   };
   const lastFraction = (usage?.counters as { lastFraction?: number } | null)?.lastFraction ?? null;
 
+  const signedCover = await coverUrl(supabase, book.cover_url);
   const multi = list.length > 1;
   const readerTitle = multi ? current?.title || book.title : book.title;
 
@@ -98,6 +122,10 @@ export default async function BookPage({
             &larr; Library
           </Link>
           <KindBadge kind={book.kind} size="sm" />
+          <span className="text-muted">
+            {book.cover_url ? "" : ""}
+            {MEDIUM_LABEL[current?.medium || "typed"] || "typed"}
+          </span>
           {multi && <span className="truncate text-ink-soft">{book.title}</span>}
 
           <Link
@@ -218,7 +246,39 @@ export default async function BookPage({
                       Save details
                     </button>
                   </form>
-                  <form action={deleteBook} className="mt-2">
+                  <form action={uploadCover} className="mt-3 space-y-2 border-t border-line pt-3">
+                    <input type="hidden" name="id" value={book.id} />
+                    <label className="block text-[11px] tracking-wide">
+                      COVER IMAGE
+                      <input
+                        type="file"
+                        name="cover"
+                        accept="image/*"
+                        className="mt-1 w-full text-[11px] text-ink-soft"
+                      />
+                    </label>
+                    <button type="submit" className="rounded-pill border border-line px-3 py-1.5 text-xs">
+                      {book.cover_url ? "Replace cover" : "Add cover"}
+                    </button>
+                  </form>
+
+                  <form action={setSectionSource} className="mt-3 space-y-2 border-t border-line pt-3">
+                    <input type="hidden" name="content_item_id" value={current.id} />
+                    <label className="block text-[11px] tracking-wide">
+                      SOURCE
+                      <input
+                        name="source"
+                        defaultValue={current.source || ""}
+                        placeholder="Where this text came from"
+                        className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-2 text-[14px] text-ink"
+                      />
+                    </label>
+                    <button type="submit" className="rounded-pill border border-line px-3 py-1.5 text-xs">
+                      Save source
+                    </button>
+                  </form>
+
+                  <form action={deleteBook} className="mt-3 border-t border-line pt-3">
                     <input type="hidden" name="id" value={book.id} />
                     <button type="submit" className="text-[11px] text-ember-600 hover:underline">
                       Delete this text and everything read in it
@@ -266,6 +326,8 @@ export default async function BookPage({
             focusSelection={at || null}
             reading={reading}
             initialFraction={lastFraction}
+            notes={personalNotes ?? []}
+            onAddNote={addNote}
           />
         ) : (
           <div className="mx-auto w-full max-w-2xl px-5 py-8">

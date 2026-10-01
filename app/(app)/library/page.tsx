@@ -4,6 +4,7 @@ import { BookCover } from "@/components/BookCover";
 import { TextList } from "@/components/TextList";
 import { LangBadge } from "@/components/LangBadge";
 import { KIND_ORDER, findKind, TEXT_KINDS } from "@/lib/text-kinds";
+import { coverUrl } from "@/lib/covers";
 
 export const metadata = { title: "Library" };
 
@@ -46,6 +47,13 @@ export default async function LibraryPage({
   }
 
   const all = books ?? [];
+  // Covers are stored privately; sign the ones that came from storage.
+  const signed = new Map<string, string | null>();
+  await Promise.all(
+    all
+      .filter((b) => b.cover_url && !/^https?:\/\//.test(b.cover_url))
+      .map(async (b) => signed.set(b.id, await coverUrl(supabase, b.cover_url)))
+  );
   const orphans = (sections ?? []).filter((s) => !s.book_id);
 
   const visible = activeKind ? all.filter((b) => (b.kind || "book") === activeKind) : all;
@@ -98,7 +106,7 @@ export default async function LibraryPage({
                         <BookCover
                           title={b.title}
                           author={b.author}
-                          coverUrl={b.cover_url}
+                          coverUrl={signed.get(b.id) ?? b.cover_url}
                           className="transition-transform duration-200 ease-out group-hover:-translate-y-1"
                         />
                         <div className="mt-3 flex items-center gap-1.5 truncate text-[12px] text-muted">

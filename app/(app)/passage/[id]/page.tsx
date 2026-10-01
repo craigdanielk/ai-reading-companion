@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateBodyText, setContentProfile } from "@/app/actions";
+import { updateBodyText, setContentProfile, addNote } from "@/app/actions";
 import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { LangPicker } from "@/components/LangPicker";
@@ -23,11 +23,17 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
   const { data: item } = await supabase.from("content_item").select("*").eq("id", id).single();
   if (!item) notFound();
 
-  const [{ data: profile }, reader, { data: prefs }, { data: usage }] = await Promise.all([
+  const [{ data: profile }, reader, { data: prefs }, { data: usage }, { data: notes }] = await Promise.all([
     supabase.from("content_profile").select("*").eq("content_item_id", id).maybeSingle(),
     loadReaderData(supabase, id),
     supabase.from("user_preference").select("*").eq("user_id", auth.user.id).maybeSingle(),
     supabase.from("usage").select("counters").eq("content_item_id", id).maybeSingle(),
+    supabase
+      .from("note")
+      .select("id, body")
+      .eq("content_item_id", id)
+      .eq("kind", "personal")
+      .order("created_at", { ascending: false }),
   ]);
 
   const reading = {
@@ -132,6 +138,8 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
           depth={profile?.comprehension_depth || "intermediate"}
           reading={reading}
           initialFraction={lastFraction}
+          notes={notes ?? []}
+          onAddNote={addNote}
         />
       </div>
     </div>

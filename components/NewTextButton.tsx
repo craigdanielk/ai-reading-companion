@@ -36,6 +36,7 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
   const [note, setNote] = useState("");
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [title, setTitle] = useState("");
+  const [medium, setMedium] = useState("typed");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   function close() {
@@ -62,6 +63,7 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
       }
       setText(res.text || "");
       setStoragePath(res.path || null);
+      setMedium("image");
     } else {
       const res = await importDocument(fd);
       setBusy(false);
@@ -75,7 +77,13 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
       }
       setText(res.text);
       setStoragePath(res.path || null);
+      setMedium(res.medium || "document");
       if (res.title) setTitle(res.title);
+      if (res.truncated) {
+        setNote("This document is very long — only the first part was brought in.");
+      } else if (res.warning) {
+        setNote(res.warning);
+      }
     }
 
     setSource("type");
@@ -139,7 +147,10 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
             <div className="mt-3 flex gap-1 rounded-pill border border-line p-0.5">
               <button
                 type="button"
-                onClick={() => setSource("type")}
+                onClick={() => {
+                  setSource("type");
+                  setMedium("typed");
+                }}
                 className={SEG + (source === "type" ? " bg-paper-2 font-medium text-ink" : " text-ink-soft")}
               >
                 Type or paste
@@ -164,6 +175,7 @@ export function NewTextButton({ variant = "rail" }: { variant?: "rail" | "tab" }
               <input type="hidden" name="kind" value={kind} />
               {storagePath && <input type="hidden" name="storage_ref" value={storagePath} />}
               {title && <input type="hidden" name="title" value={title} />}
+              <input type="hidden" name="medium" value={medium} />
 
               {source === "upload" ? (
                 <div className="rounded-input border border-dashed border-line p-4 text-center">
