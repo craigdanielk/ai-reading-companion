@@ -12,6 +12,7 @@ current private beta.
 | 5 | Dedicated Supabase project | **Blocking for client launch** — the app runs on the shared estate project, so storage quota *and* Vault are shared with unrelated systems |
 | 6 | Reader onboarding | Open — public sign-up is removed for the private beta and access is by invitation, a recorded deviation from capability C1. Decide before launch: keep invite-only, or restore sign-up |
 | 7 | Upload scanning | Open — uploads are capped at 25 MB and restricted by MIME allowlist, but nothing scans content for malware |
+| 8 | The one-click demo account holds operator rights | **Open — needs a decision.** `demo@adel.dev` is in `ADMIN_EMAILS`, and the public "Continue as demo user" button signs anyone into it, so a visitor who clicks it reaches the operator console: cost, margin and the full reader list. The account's password is no longer published on the page or in the client bundle, but the button still grants the role. Fix: point `ADMIN_EMAILS` at a private operator account and leave the demo account a plain reader |
 
 This file is the canonical record the privacy notice points at. Clearing a gate
 does not happen here — it happens in the owning service and this table is updated.
