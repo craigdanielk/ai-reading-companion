@@ -1,13 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveProviderConfig } from "@/lib/providers/resolve";
-import {
-  buildSystemPrompt,
-  buildUserPrompt,
-  buildPageSystemPrompt,
-  buildPagePrompt,
-} from "@/lib/providers/prompt";
-import { parseSections, parsePageSections } from "@/lib/providers/parse";
+import { buildActionPrompt } from "@/lib/providers/prompt";
+import { parseAction } from "@/lib/providers/parse";
+import { findAction, variantFor, type Scope } from "@/lib/actions/registry";
 import { snapRange } from "@/lib/text/range";
 import { estimateCost } from "@/lib/cost";
 import type { ComprehensionDepth } from "@/lib/providers/types";
@@ -27,7 +23,21 @@ export async function POST(req: Request) {
   const contentItemId = body.content_item_id as string | undefined;
   if (!contentItemId) return new Response("Missing content_item_id", { status: 400 });
 
-  const mode: Mode = body.mode === "page" ? "page" : "passage";
+  // The action is WHAT to do; the scope is WHAT to do it to. The client sends
+  // both, and the pair is validated: an action that is not offered at the
+  // scope it was asked for is refused rather than quietly downgraded.
+  const requested = body.scope as string | undefined;
+  const scope: Scope =
+    requested === "word" || requested === "sentence" || requested === "passage" || requested === "text"
+      ? requested
+      : body.mode === "page"
+        ? "text"
+        : "passage";
+  const mode: Mode = scope === "text" ? "page" : "passage";
+  const action = findAction(typeof body.action === "string" ? body.action : null);
+  if (!variantFor(action, scope)) {
+    return new Response("Action " + action.id + " is not offered at scope " + scope, { status: 400 });
+  }
   const asked = body.selection as { start?: number; end?: number } | undefined;
 
   const { data: item } = await supabase
@@ -60,13 +70,28 @@ export async function POST(req: Request) {
   const cfg = await resolveProviderConfig();
   if (!cfg) return new Response("No AI provider configured", { status: 503 });
 
+  // Precedence for the language: this request's override, then how this text
+  // was filed, then the reader's own default. Until now only the middle link
+  // existed, so a text was stuck with whatever language it was captured in.
+  let fallbackTarget = profile?.target_language || null;
+  if (!fallbackTarget) {
+    const { data: prefs } = await supabase
+      .from("user_preference")
+      .select("default_target_language")
+      .maybeSingle();
+    fallbackTarget = prefs?.default_target_language || "en";
+  }
+
+  const override = (v: unknown) => (typeof v === "string" && v ? v : null);
   const cReq = {
     text,
     sourceLanguage: profile?.source_language || "auto",
-    targetLanguage: profile?.target_language || "en",
-    comprehensionDepth: (profile?.comprehension_depth || "intermediate") as ComprehensionDepth,
-    domain: (profile?.domain || "general") as DomainCode,
+    targetLanguage: override(body.target_language) || fallbackTarget || "en",
+    comprehensionDepth: (override(body.depth) || profile?.comprehension_depth || "intermediate") as ComprehensionDepth,
+    domain: (override(body.domain) || profile?.domain || "general") as DomainCode,
   };
+
+  const built = buildActionPrompt(cReq, action.id, scope);
 
   const upstream = await fetch(cfg.baseUrl + "/chat/completions", {
     method: "POST",
@@ -79,11 +104,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: mode === "page" ? buildPageSystemPrompt() : buildSystemPrompt(),
+          content: built.system,
         },
         {
           role: "user",
-          content: mode === "page" ? buildPagePrompt(cReq) : buildUserPrompt(cReq),
+          content: built.user,
         },
       ],
       stream: true,
@@ -142,46 +167,36 @@ export async function POST(req: Request) {
       // Persist BEFORE closing the response: once the stream is closed Vercel may
       // freeze the function and these writes never land.
       try {
-        if (mode === "page") {
-          const parsed = parsePageSections(full_out);
-          if (parsed.sense) {
-            const etId = await ensureExtractedText(supabase, contentItemId, full);
-            if (etId) {
-              const { error } = await supabase.from("ai_result").insert({
-                extracted_text_id: etId,
-                mode: "page",
-                original: "",
-                understanding: parsed.sense,
-                terms: parsed.hard || [],
-                key_idea: "",
-                explanation: "",
-              });
-              if (error) console.error("ai_result(page) insert:", error.message);
-            }
+        // One path for every action. An action fills only the slots it declares,
+        // so a definition stores no translation and a translation stores no
+        // grammar. The row records which verb produced it.
+        const parsed = parseAction(full_out, action.id, scope);
+        const hasBody =
+          Boolean(parsed.original) ||
+          Boolean(parsed.understanding) ||
+          Boolean(parsed.keyIdea) ||
+          Boolean(parsed.explanation) ||
+          Boolean(parsed.terms && parsed.terms.length > 0);
+
+        if (hasBody) {
+          let selectionId: string | null = null;
+          if (mode === "passage" && range) {
+            selectionId = await ensureSelection(supabase, contentItemId, range, text, full);
           }
-        } else {
-          const parsed = parseSections(full_out);
-          if (parsed.understanding) {
-            let selectionId: string | null = null;
-            if (range) {
-              selectionId = await ensureSelection(supabase, contentItemId, range, text, full);
-            }
-            const etId = selectionId
-              ? null
-              : await ensureExtractedText(supabase, contentItemId, full);
-            if (selectionId || etId) {
-              const { error } = await supabase.from("ai_result").insert({
-                extracted_text_id: etId,
-                selection_id: selectionId,
-                mode: "passage",
-                original: parsed.original || text,
-                understanding: parsed.understanding,
-                terms: parsed.importantTerms || [],
-                key_idea: parsed.keyIdea || "",
-                explanation: parsed.explanation || "",
-              });
-              if (error) console.error("ai_result insert:", error.message);
-            }
+          const etId = selectionId ? null : await ensureExtractedText(supabase, contentItemId, full);
+          if (selectionId || etId) {
+            const { error } = await supabase.from("ai_result").insert({
+              extracted_text_id: etId,
+              selection_id: selectionId,
+              mode,
+              action: action.id,
+              original: parsed.original ?? (mode === "passage" ? text : ""),
+              understanding: parsed.understanding ?? "",
+              terms: parsed.terms ?? [],
+              key_idea: parsed.keyIdea ?? "",
+              explanation: parsed.explanation ?? "",
+            });
+            if (error) console.error("ai_result insert:", error.message);
           }
         }
 
@@ -221,6 +236,7 @@ export async function POST(req: Request) {
           prompt_tokens: usage.prompt_tokens,
           completion_tokens: usage.completion_tokens,
           cost_usd: round(cost),
+          action: action.id,
         });
         if (ledgerErr) console.error("cost_ledger insert:", ledgerErr.message);
       } catch (e) {

@@ -2,15 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { parseSections, parsePageSections } from "@/lib/providers/parse";
+import { parseAction } from "@/lib/providers/parse";
 import { snapRange } from "@/lib/text/range";
-import { findLanguage } from "@/lib/nuance/registry";
+import { findLanguage, LANGUAGES } from "@/lib/nuance/registry";
+import {
+  findAction,
+  actionsForScope,
+  scopeForSelection,
+  variantFor,
+  SLOT,
+  DEFAULT_ACTION,
+  type Marker,
+  type Scope,
+} from "@/lib/actions/registry";
 import { LangBadge } from "@/components/LangBadge";
 import { saveReadingAppearance, addNote, updateNote, deleteNote } from "@/app/actions";
 
 export interface Result {
   id: string | null;
   mode: "passage" | "page";
+  /** Which verb produced it. */
+  action: string;
   original: string | null;
   understanding: string | null;
   terms: string[] | null;
@@ -61,28 +73,17 @@ interface SessionGloss {
 }
 const sessionGlosses = new Map<string, SessionGloss[]>();
 
-function parseResult(raw: string, mode: "passage" | "page"): Result {
-  if (mode === "page") {
-    const p = parsePageSections(raw);
-    return {
-      id: null,
-      mode: "page",
-      original: null,
-      understanding: p.sense || null,
-      terms: p.hard || null,
-      keyIdea: null,
-      explanation: null,
-    };
-  }
-  const p = parseSections(raw);
+function parseResult(raw: string, actionId: string, scope: Scope): Result {
+  const p = parseAction(raw, actionId, scope);
   return {
     id: null,
-    mode: "passage",
-    original: p.original || null,
-    understanding: p.understanding || null,
-    terms: p.importantTerms || null,
-    keyIdea: p.keyIdea || null,
-    explanation: p.explanation || null,
+    mode: scope === "text" ? "page" : "passage",
+    action: actionId,
+    original: p.original,
+    understanding: p.understanding,
+    terms: p.terms,
+    keyIdea: p.keyIdea,
+    explanation: p.explanation,
   };
 }
 
@@ -219,11 +220,22 @@ export function Reader({
   const [progress, setProgress] = useState(() => initialFraction ?? 0);
 
   const [streamed, setStreamed] = useState("");
-  const [activeMode, setActiveMode] = useState<"passage" | "page">("passage");
+  const [activeScope, setActiveScope] = useState<Scope>("passage");
+  const [activeAction, setActiveAction] = useState<string>(DEFAULT_ACTION);
+  // The language the reader wants, chosen at the moment of asking. Until now it
+  // was frozen at capture time with no way to change it while reading.
+  const [intoLang, setIntoLang] = useState(targetLanguage);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<Range | null>(null);
-  const [popover, setPopover] = useState<{ start: number; end: number; top: number; left: number } | null>(null);
+  const [popover, setPopover] = useState<{
+    start: number;
+    end: number;
+    scope: Scope;
+    top: number;
+    left: number;
+  } | null>(null);
   const [focusedBlock, setFocusedBlock] = useState(-1);
   const [notesOpen, setNotesOpen] = useState(false);
 
@@ -252,7 +264,7 @@ export function Reader({
     [selections, fresh]
   );
 
-  const live: Result | null = streamed ? parseResult(streamed, activeMode) : null;
+  const live: Result | null = streamed ? parseResult(streamed, activeAction, activeScope) : null;
 
   const glossByBlock = useMemo(() => {
     const map = new Map<number, Result>();
@@ -281,24 +293,34 @@ export function Reader({
   const targetName = findLanguage(targetLanguage)?.name || targetLanguage;
   const hasAny = Boolean(wholeText) || glossByBlock.size > 0 || Boolean(live && live.mode === "passage");
 
-  async function run(selection: Range | null, mode: "passage" | "page") {
+  async function run(selection: Range | null, scope: Scope, actionId: string = DEFAULT_ACTION) {
     if (!canRun) return;
+    const action = findAction(actionId);
+    if (!variantFor(action, scope)) return;
     const seq = ++runSeq.current;
     abort.current?.abort();
     setRunning(true);
     setStreamed("");
     setError("");
-    setActiveMode(mode);
+    setActiveScope(scope);
+    setActiveAction(action.id);
     setPending(selection);
     window.getSelection()?.removeAllRanges();
     setPopover(null);
+    setMenuOpen(false);
     const ctrl = new AbortController();
     abort.current = ctrl;
     try {
       const res = await fetch("/api/understand", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content_item_id: contentItemId, mode, selection }),
+        body: JSON.stringify({
+          content_item_id: contentItemId,
+          scope,
+          action: action.id,
+          selection,
+          target_language: intoLang,
+        }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -315,7 +337,7 @@ export function Reader({
         setStreamed(acc);
       }
       if (selection && acc.trim() && seq === runSeq.current) {
-        const result = parseResult(acc, mode);
+        const result = parseResult(acc, action.id, scope);
         const known = sessionHighlights.get(contentItemId) ?? [];
         if (!known.some((r) => r.start === selection.start && r.end === selection.end)) {
           const next = [...known, selection];
@@ -437,7 +459,18 @@ export function Reader({
     const el = blockEl(e.target as Node);
     if (!el) return;
     const block = blocks.find((b) => b.start === Number(el.dataset.start));
-    if (block) void run({ start: block.start, end: block.end }, "passage");
+    if (!block) return;
+    // Tapping a paragraph used to run comprehension immediately. It now opens
+    // the picker anchored to that paragraph, so the reader chooses the verb.
+    const rect = el.getBoundingClientRect();
+    setMenuOpen(false);
+    setPopover({
+      start: block.start,
+      end: block.end,
+      scope: "passage",
+      top: rect.top > 70 ? rect.top - 6 : rect.bottom + 10,
+      left: Math.min(Math.max(rect.left + rect.width / 2, 150), window.innerWidth - 150),
+    });
   }
 
   function onTextSelection() {
@@ -467,15 +500,16 @@ export function Reader({
     setPopover({
       start,
       end,
+      scope: scopeForSelection(bodyText.slice(start, end)),
       top: rect.top > 70 ? rect.top - 46 : rect.bottom + 10,
       left: Math.min(Math.max(rect.left + rect.width / 2, 70), window.innerWidth - 70),
     });
   }
 
   useEffect(() => {
-    if (activeMode !== "page" || !running) return;
+    if (activeScope !== "text" || !running) return;
     pageNoteRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [activeMode, running]);
+  }, [activeScope, running]);
 
   useEffect(() => {
     if (!focusSelection) return;
@@ -548,7 +582,7 @@ export function Reader({
       {blocks.length === 0 && <p className="text-[14px] text-muted">This text is empty.</p>}
       {blocks.map((b, i) => {
         const segs = segmentsFor(b, ranges);
-        const gloss = i === pendingBlock && activeMode === "passage" ? live : glossByBlock.get(i) || null;
+        const gloss = i === pendingBlock && activeScope !== "text" ? live : glossByBlock.get(i) || null;
         const isPending = i === pendingBlock && running;
         return (
           <div key={i} className="reader-row lg:py-2">
@@ -591,7 +625,7 @@ export function Reader({
         {live?.mode === "page" && running && !live.understanding ? (
           <Skeleton />
         ) : (
-          <GlossBody r={wholeText!} hard />
+          <GlossBody r={wholeText!} />
         )}
       </div>
     </section>
@@ -765,7 +799,10 @@ export function Reader({
                 </button>
               )}
               <button
-                onClick={() => void run(null, "page")}
+                onClick={() => {
+              setPopover(null);
+              setMenuOpen((v) => !v);
+            }}
                 disabled={!canRun}
                 className="underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
               >
@@ -857,7 +894,10 @@ export function Reader({
         {/* toolbar — the reading controls, always reachable */}
         <div className="glass sticky top-[3px] z-20 mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-pill px-4 py-2 text-[12px] text-muted">
           <button
-            onClick={() => void run(null, "page")}
+            onClick={() => {
+              setPopover(null);
+              setMenuOpen((v) => !v);
+            }}
             disabled={!canRun}
             className="underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
           >
@@ -893,14 +933,53 @@ export function Reader({
       </div>
       )}
 
+      {menuOpen && (
+        <>
+          <button
+            className="fixed inset-0 z-40 cursor-default bg-ink/20"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Close"
+          />
+          <div className="glass glass-in fixed inset-x-3 bottom-3 z-50 max-h-[80dvh] overflow-y-auto rounded-sheet p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[24rem]">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-display text-[13px] font-semibold text-ink">The whole text</span>
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="text-[12px] text-muted transition-colors hover:text-ink"
+              >
+                Close
+              </button>
+            </div>
+            <IntoPicker value={intoLang} onChange={setIntoLang} />
+            <div className="mt-3">
+              <ActionList scope="text" onPick={(id) => void run(null, "text", id)} />
+            </div>
+          </div>
+        </>
+      )}
+
       {popover && (
-        <button
-          style={{ top: popover.top, left: popover.left }}
-          className="glass glass-press fixed z-40 -translate-x-1/2 rounded-pill px-4 py-2 text-[12px] font-medium text-ink"
-          onClick={() => void run({ start: popover.start, end: popover.end }, "passage")}
-        >
-          Understand this
-        </button>
+        <>
+          <button
+            className="fixed inset-0 z-30 cursor-default"
+            onClick={() => setPopover(null)}
+            aria-label="Close"
+          />
+          <div
+            style={{ top: popover.top, left: popover.left }}
+            className="glass glass-in fixed z-40 w-[19.5rem] max-w-[92vw] -translate-x-1/2 rounded-sheet p-3"
+          >
+            <IntoPicker value={intoLang} onChange={setIntoLang} />
+            <div className="mt-2.5">
+              <ActionList
+                scope={popover.scope}
+                onPick={(id) =>
+                  void run({ start: popover.start, end: popover.end }, popover.scope, id)
+                }
+              />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -1048,42 +1127,150 @@ function Skeleton() {
   );
 }
 
-function GlossBody({ r, hard }: { r: Result; hard?: boolean }) {
-  if (r.mode === "page") {
-    return (
-      <div className="space-y-4">
-        {r.understanding && <p className="font-display text-[17px] leading-[1.6] text-ink">{r.understanding}</p>}
-        {r.terms && r.terms.length > 0 && (
-          <ul className="space-y-1.5 border-t border-line pt-3">
-            {r.terms.map((t, i) => (
-              <li key={i} className="text-[13px] leading-relaxed text-ink-soft">
-                {t}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
-  }
+/**
+ * Render whichever sections the action declared, in the order it declared them.
+ * The renderer knows nothing about any particular action — a new one appears
+ * here for free. ORIGINAL is never shown: it is the text the reader is already
+ * looking at.
+ */
+function GlossBody({ r }: { r: Result }) {
+  const scope: Scope = r.mode === "page" ? "text" : "passage";
+  const variant = variantFor(findAction(r.action), scope);
+  if (!variant) return null;
+
+  const valueOf = (name: Marker): string | string[] | null => {
+    switch (SLOT[name]) {
+      case "original":
+        return r.original;
+      case "understanding":
+        return r.understanding;
+      case "terms":
+        return r.terms;
+      case "keyIdea":
+        return r.keyIdea;
+      default:
+        return r.explanation;
+    }
+  };
 
   return (
     <div className="space-y-2.5">
-      {r.understanding && <p className="font-display text-[16px] leading-[1.55] text-ink">{r.understanding}</p>}
-      {r.terms && r.terms.length > 0 && (
-        <ul className="space-y-0.5 border-t border-line pt-2.5 text-[12.5px] leading-snug text-ink-soft">
-          {r.terms.map((t, i) => (
-            <li key={i}>{t}</li>
+      {variant.sections.map((s) => {
+        if (s.name === "ORIGINAL") return null;
+        const v = valueOf(s.name);
+
+        if (s.kind === "list") {
+          const list = Array.isArray(v) ? v : [];
+          if (list.length === 0) return null;
+          return (
+            <ul
+              key={s.name}
+              className="space-y-0.5 border-t border-line pt-2.5 text-[12.5px] leading-snug text-ink-soft"
+            >
+              {list.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          );
+        }
+
+        const text = typeof v === "string" ? v : "";
+        if (!text) return null;
+
+        if (s.name === "EXPLANATION") {
+          return (
+            <details key={s.name} className="group pt-0.5">
+              <summary className="cursor-pointer list-none text-[12px] text-muted transition-colors hover:text-ink-soft">
+                <span className="group-open:hidden">{s.label.toLowerCase()}</span>
+                <span className="hidden group-open:inline">hide</span>
+              </summary>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">{text}</p>
+            </details>
+          );
+        }
+
+        // The meaning-bearing section carries the weight; the rest annotate it.
+        const lead = s.name === "UNDERSTANDING" || s.name === "SENSE";
+        return (
+          <p
+            key={s.name}
+            className={
+              lead
+                ? "font-display text-[16px] leading-[1.55] text-ink"
+                : "text-[13px] leading-relaxed text-ink-soft"
+            }
+          >
+            {!lead && (
+              <span className="mr-1.5 text-[10.5px] uppercase tracking-wide text-muted">
+                {s.label}
+              </span>
+            )}
+            {text}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The reader's verbs, filtered to what applies to what they selected. */
+function ActionList({ scope, onPick }: { scope: Scope; onPick: (id: string) => void }) {
+  return (
+    <ul className="space-y-0.5">
+      {actionsForScope(scope).map((a) => (
+        <li key={a.id}>
+          <button
+            onClick={() => onPick(a.id)}
+            className="w-full rounded-input px-2 py-1.5 text-left transition-colors hover:bg-paper-2"
+          >
+            <span className="block text-[13px] font-medium text-ink">{a.label}</span>
+            <span className="block text-[11px] leading-snug text-muted">{a.hint}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The language, chosen where the asking happens. It used to be decided once,
+ * when the text was filed, and never again.
+ */
+function IntoPicker({ value, onChange }: { value: string; onChange: (code: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between"
+      >
+        <span className="text-[10.5px] uppercase tracking-wide text-muted">Into</span>
+        <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
+          <LangBadge code={value} size="sm" />
+          {findLanguage(value)?.name || value}
+          <span className="text-muted">▾</span>
+        </span>
+      </button>
+      {open && (
+        <div className="mt-2 flex flex-wrap gap-1 border-t border-line pt-2.5">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => {
+                onChange(l.code);
+                setOpen(false);
+              }}
+              className={
+                "rounded-pill border px-2 py-0.5 text-[11.5px] transition-colors " +
+                (l.code === value
+                  ? "border-ember bg-paper-2 font-medium text-ink"
+                  : "border-line text-ink-soft hover:text-ink")
+              }
+            >
+              {l.name}
+            </button>
           ))}
-        </ul>
-      )}
-      {!hard && r.explanation && (
-        <details className="group pt-0.5">
-          <summary className="cursor-pointer list-none text-[12px] text-muted transition-colors hover:text-ink-soft">
-            <span className="group-open:hidden">why</span>
-            <span className="hidden group-open:inline">hide</span>
-          </summary>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">{r.explanation}</p>
-        </details>
+        </div>
       )}
     </div>
   );

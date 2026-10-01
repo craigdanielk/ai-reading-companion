@@ -7,6 +7,7 @@ interface ResultRow {
   id: string;
   selection_id?: string | null;
   mode?: string | null;
+  action?: string | null;
   original?: string | null;
   understanding?: string | null;
   terms?: string[] | null;
@@ -19,6 +20,7 @@ function toResult(row: ResultRow): Result {
   return {
     id: row.id,
     mode: row.mode === "page" ? "page" : "passage",
+    action: row.action ?? "understand",
     original: row.original ?? null,
     understanding: row.understanding ?? null,
     terms: row.terms ?? null,
@@ -53,14 +55,16 @@ export async function loadReaderData(
     ids.length
       ? supabase
           .from("ai_result")
-          .select("id, selection_id, mode, original, understanding, terms, key_idea, explanation, created_at")
+          .select(
+            "id, selection_id, mode, action, original, understanding, terms, key_idea, explanation, created_at"
+          )
           .in("selection_id", ids)
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [] as ResultRow[] }),
     et
       ? supabase
           .from("ai_result")
-          .select("id, mode, original, understanding, terms, key_idea, explanation, created_at")
+          .select("id, mode, action, original, understanding, terms, key_idea, explanation, created_at")
           .eq("extracted_text_id", et.id)
           .eq("mode", "page")
           .order("created_at", { ascending: false })

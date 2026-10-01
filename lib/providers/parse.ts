@@ -1,4 +1,5 @@
-import { SECTIONS, PAGE_SECTIONS, marker, SectionName, PageSectionName } from "./prompt";
+import { marker } from "./prompt";
+import { SLOT, findAction, variantFor, type ActionSection, type Marker, type Scope } from "@/lib/actions/registry";
 
 export interface Sections {
   original: string;
@@ -13,18 +14,29 @@ export interface PageSections {
   hard: string[];
 }
 
-// Parse whatever has arrived so far. Safe on partial text: an unterminated
-// section simply yields what exists up to the next marker or end of stream.
-function splitMarked(raw: string, names: readonly string[]): Record<string, string> {
+/** The five storage slots every action writes into. */
+export interface ParsedAction {
+  original: string | null;
+  understanding: string | null;
+  terms: string[] | null;
+  keyIdea: string | null;
+  explanation: string | null;
+}
+
+/**
+ * Split a stream by the given markers. Safe on partial text: an unterminated
+ * section simply yields what exists up to the next marker or end of stream.
+ */
+export function parseMarkers(raw: string, names: readonly string[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const name of names) {
-    const tag = marker(name as SectionName);
+    const tag = marker(name as Marker);
     const start = raw.indexOf(tag);
     if (start === -1) continue;
     const from = start + tag.length;
     let to = raw.length;
     for (const other of names) {
-      const next = raw.indexOf(marker(other as SectionName), from);
+      const next = raw.indexOf(marker(other as Marker), from);
       if (next !== -1 && next < to) to = next;
     }
     out[name] = raw.slice(from, to).trim();
@@ -32,7 +44,51 @@ function splitMarked(raw: string, names: readonly string[]): Record<string, stri
   return out;
 }
 
-const KEY: Record<SectionName, keyof Sections> = {
+// Terms arrive semicolon-separated; a hard-parts list arrives one per line.
+function splitList(body: string, name: Marker): string[] {
+  if (name === "HARD") {
+    return body
+      .split("\n")
+      .map((l) => l.replace(/^[-•*]\s*/, "").trim())
+      .filter((l) => l.length > 0 && l.toLowerCase() !== "none");
+  }
+  return body
+    .split(";")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Parse a streamed response for one action at one scope into storage slots.
+ * Sections the action does not declare stay null, which is how the reader
+ * knows to render only what was asked for.
+ */
+export function parseAction(raw: string, actionId: string, scope: Scope): ParsedAction {
+  const empty: ParsedAction = {
+    original: null,
+    understanding: null,
+    terms: null,
+    keyIdea: null,
+    explanation: null,
+  };
+  const variant = variantFor(findAction(actionId), scope);
+  if (!variant) return empty;
+
+  const parts = parseMarkers(raw, variant.sections.map((s: ActionSection) => s.name));
+  const out = { ...empty };
+  for (const s of variant.sections) {
+    const body = parts[s.name];
+    if (body === undefined) continue;
+    const slot = SLOT[s.name];
+    if (s.kind === "list") (out as Record<string, unknown>)[slot] = splitList(body, s.name);
+    else (out as Record<string, unknown>)[slot] = body;
+  }
+  return out;
+}
+
+// --- The default action's shape, kept for existing callers and tests. ---
+
+const KEY: Record<string, keyof Sections> = {
   ORIGINAL: "original",
   UNDERSTANDING: "understanding",
   TERMS: "importantTerms",
@@ -41,41 +97,21 @@ const KEY: Record<SectionName, keyof Sections> = {
 };
 
 export function parseSections(raw: string): Partial<Sections> {
-  const parts = splitMarked(raw, SECTIONS);
+  const parts = parseMarkers(raw, ["ORIGINAL", "UNDERSTANDING", "TERMS", "KEYIDEA", "EXPLANATION"]);
   const out: Partial<Sections> = {};
-  for (const name of SECTIONS) {
+  for (const name of Object.keys(KEY)) {
     const body = parts[name];
     if (body === undefined) continue;
-    if (name === "TERMS") {
-      out[KEY[name]] = body
-        .split(";")
-        .map((t) => t.trim())
-        .filter(Boolean) as never;
-    } else {
-      out[KEY[name]] = body as never;
-    }
+    if (name === "TERMS") out[KEY[name]] = splitList(body, "TERMS") as never;
+    else out[KEY[name]] = body as never;
   }
   return out;
 }
-
-const PAGE_KEY: Record<PageSectionName, keyof PageSections> = { SENSE: "sense", HARD: "hard" };
 
 export function parsePageSections(raw: string): Partial<PageSections> {
-  const parts = splitMarked(raw, PAGE_SECTIONS);
+  const parts = parseMarkers(raw, ["SENSE", "HARD"]);
   const out: Partial<PageSections> = {};
   if (parts.SENSE !== undefined) out.sense = parts.SENSE;
-  if (parts.HARD !== undefined) {
-    out.hard = parts.HARD
-      .split("\n")
-      .map((l) => l.replace(/^[-•*]\s*/, "").trim())
-      .filter((l) => l.length > 0 && l.toLowerCase() !== "none");
-  }
+  if (parts.HARD !== undefined) out.hard = splitList(parts.HARD, "HARD");
   return out;
-}
-
-export function sectionBodyFor(streamed: string, name: SectionName): string {
-  const parsed = parseSections(streamed);
-  const k = KEY[name];
-  const v = parsed[k];
-  return Array.isArray(v) ? v.join("; ") : ((v as string) || "");
 }
