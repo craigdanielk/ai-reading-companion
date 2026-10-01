@@ -4,11 +4,8 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { devLogin } from "@/app/actions";
 
-const DEMO_EMAIL = "demo@adel.dev";
-const DEMO_PASSWORD = "AdelDemo2026!Secure";
-
 export default function LoginPage() {
-  const [email, setEmail] = useState(DEMO_EMAIL);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [user, setUser] = useState<string | null>(null);
@@ -107,11 +104,6 @@ export default function LoginPage() {
             </p>
           </form>
 
-          <div className="mt-6 rounded-card border border-line bg-paper-2/50 p-4 text-xs text-ink-soft">
-            <p className="font-medium text-ink">Demo credentials</p>
-            <p className="mt-1 font-mono">{DEMO_EMAIL}</p>
-            <p className="font-mono">{DEMO_PASSWORD}</p>
-          </div>
         </>
       )}
 
