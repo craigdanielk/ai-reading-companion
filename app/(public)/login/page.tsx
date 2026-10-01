@@ -23,12 +23,16 @@ export default function LoginPage() {
     e.preventDefault();
     setMessage("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setMessage(error.message);
-    else {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user?.email ?? null);
-      setMessage("Signed in.");
+    if (error) {
+      setMessage(error.message);
+      return;
     }
+    // Hard navigation on purpose. A router push here replays the /library
+    // segment that was prefetched while signed out — which the middleware had
+    // already resolved to a redirect back to /login — so the reader signed in
+    // and then sat on this page. A full document request sends the new session
+    // cookies and always lands in the app.
+    window.location.assign("/library");
   }
 
   async function signOut() {

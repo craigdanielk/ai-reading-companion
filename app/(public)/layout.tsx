@@ -12,7 +12,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               Jeralis
             </span>
           </Link>
-          <Link href="/library" className="text-sm text-ink-soft hover:text-ember">
+          {/* No prefetch: for a signed-out visitor the middleware resolves this
+              to a redirect back here, and that stale payload would be replayed. */}
+          <Link href="/library" prefetch={false} className="text-sm text-ink-soft hover:text-ember">
             Open app
           </Link>
         </nav>
