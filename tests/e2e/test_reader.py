@@ -36,6 +36,12 @@ def test_paragraph_tap_produces_gloss(page):
     create_text(page, TEXT)
     page.wait_for_timeout(1200)
     page.eval_on_selector_all("[data-start]", "els => els[0].click()")
+    page.wait_for_timeout(600)
+    # Tapping a paragraph opens the picker rather than assuming the verb, so the
+    # reader chooses what to do with it. Understand is simply the first choice.
+    picker = page.locator("[data-testid=action-picker]")
+    assert picker.count() == 1, "tapping a paragraph should open the action picker"
+    picker.get_by_role("button", name="Understand").click()
     settle(page)
     # poll for the deterministic signals instead of sleeping: the tapped paragraph
     # is highlighted and a margin gloss renders beside it
@@ -61,6 +67,7 @@ def test_reader_offers_all_three_selection_scopes(page):
     page.goto(BASE_URL + href)
     page.wait_for_timeout(1500)
     assert page.query_selector('button:has-text("whole text")'), "no whole-text control"
+    assert page.query_selector("[data-start]"), "no paragraph to tap"
     assert page.query_selector("[data-start]"), "no paragraph to select"
     page.wait_for_timeout(200)
 

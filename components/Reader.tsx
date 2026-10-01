@@ -940,7 +940,10 @@ export function Reader({
             onClick={() => setMenuOpen(false)}
             aria-label="Close"
           />
-          <div className="glass glass-in fixed inset-x-3 bottom-3 z-50 max-h-[80dvh] overflow-y-auto rounded-sheet p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[24rem]">
+          <div
+            data-testid="action-menu"
+            className="glass glass-in fixed inset-x-3 bottom-3 z-50 max-h-[80dvh] overflow-y-auto rounded-sheet p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[24rem]"
+          >
             <div className="mb-3 flex items-center justify-between">
               <span className="font-display text-[13px] font-semibold text-ink">The whole text</span>
               <button
@@ -966,6 +969,7 @@ export function Reader({
             aria-label="Close"
           />
           <div
+            data-testid="action-picker"
             style={{ top: popover.top, left: popover.left }}
             className="glass glass-in fixed z-40 w-[19.5rem] max-w-[92vw] -translate-x-1/2 rounded-sheet p-3"
           >
