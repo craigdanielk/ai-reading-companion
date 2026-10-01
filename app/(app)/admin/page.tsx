@@ -34,17 +34,28 @@ export default async function AdminPage() {
   const admin = createAdminClient();
   const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
 
-  const [{ data: costs }, { data: users }, { data: books }, { data: usage }] = await Promise.all([
+  const [{ data: costs }, { data: books }, { data: usage }] = await Promise.all([
     admin
       .from("cost_ledger")
       .select("user_id, origin, model, prompt_tokens, completion_tokens, cost_usd, created_at")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(5000),
-    admin.auth.admin.listUsers({ page: 1, perPage: 200 }),
-    admin.from("book").select("id, user_id, title"),
+    admin.from("book").select("id, user_id"),
     admin.from("usage").select("user_id, counters"),
   ]);
+
+  // This Supabase project is shared with the rest of the estate, so listUsers()
+  // would hand the operator every other business's accounts. Readers are the
+  // people with content here, and nobody else.
+  const readerIds = [
+    ...new Set([...(books ?? []).map((b) => b.user_id), ...(usage ?? []).map((u) => u.user_id)]),
+  ];
+  const looked = await Promise.all(readerIds.map((id) => admin.auth.admin.getUserById(id)));
+  const readers = looked
+    .map((r) => r.data?.user)
+    .filter((u): u is NonNullable<typeof u> => Boolean(u))
+    .sort((a, b) => (a.email ?? "").localeCompare(b.email ?? ""));
 
   const rows = (costs ?? []) as CostRow[];
   const now = Date.now();
@@ -75,7 +86,6 @@ export default async function AdminPage() {
     perUser.set(r.user_id, u);
   }
 
-  const emailOf = new Map((users?.users ?? []).map((u) => [u.id, u.email ?? u.id]));
   const textsOf = new Map<string, number>();
   for (const b of books ?? []) textsOf.set(b.user_id, (textsOf.get(b.user_id) ?? 0) + 1);
   const comprehendsOf = new Map<string, number>();
@@ -148,7 +158,10 @@ export default async function AdminPage() {
       <section className="mt-10">
         <h2 className="font-display text-[17px] font-semibold">Readers</h2>
         <ul className="mt-3 divide-y divide-line rounded-card border border-line">
-          {(users?.users ?? []).map((u) => {
+          {readers.length === 0 && (
+            <li className="px-4 py-3 text-[13px] text-muted">No readers yet.</li>
+          )}
+          {readers.map((u) => {
             const spend = perUser.get(u.id)?.cost ?? 0;
             const calls = perUser.get(u.id)?.calls ?? 0;
             return (
