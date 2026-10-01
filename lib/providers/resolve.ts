@@ -49,13 +49,22 @@ export async function resolveProviderConfig(): Promise<ProviderConfig | null> {
       .eq("is_default", true)
       .maybeSingle();
     if (conn && conn.credential_ref && PROVIDERS[conn.provider]) {
-      return {
-        provider: conn.provider,
-        baseUrl: PROVIDERS[conn.provider].baseUrl,
-        apiKey: conn.credential_ref,
-        model: (conn.model as string) || PROVIDERS[conn.provider].model,
-        origin: "byok",
-      };
+      // credential_ref is a Vault secret id. Decryption is ownership-checked in
+      // the database, so this returns a value only for the reader's own secret.
+      const { data: secret } = await supabase.rpc("fn_provider_credential", {
+        p_connection_id: conn.id,
+      });
+      const apiKey = typeof secret === "string" ? secret : "";
+      if (apiKey) {
+        return {
+          provider: conn.provider,
+          baseUrl: PROVIDERS[conn.provider].baseUrl,
+          apiKey,
+          model: (conn.model as string) || PROVIDERS[conn.provider].model,
+          origin: "byok",
+        };
+      }
+      console.error("resolveProviderConfig: credential unavailable, falling back to platform");
     }
   }
 

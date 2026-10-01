@@ -484,7 +484,7 @@ export async function deleteProvider(formData: FormData): Promise<void> {
   if (!data.user) redirect("/login");
 
   const id = formData.get("id") as string;
-  const { error } = await supabase.from("provider_connection").delete().eq("id", id);
+  const { error } = await supabase.rpc("fn_delete_provider_credential", { p_connection_id: id });
   if (error) console.error("deleteProvider:", error.message);
   redirect("/settings/providers");
 }
@@ -506,28 +506,19 @@ export async function connectProvider(formData: FormData): Promise<void> {
   const model = (formData.get("model") as string) || null;
 
   if (api_key.trim()) {
-    const { data: existing } = await supabase
-      .from("provider_connection")
-      .select("id")
-      .eq("user_id", data.user.id)
-      .eq("provider", provider)
-      .maybeSingle();
-    if (existing) {
-      await supabase
-        .from("provider_connection")
-        .update({ credential_ref: api_key, model, is_default: true })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("provider_connection").insert({
-        user_id: data.user.id,
-        provider,
-        credential_ref: api_key,
-        model,
-        is_default: true,
-      });
-    }
+    // The credential is written to Vault by a SECURITY DEFINER function; this
+    // table only ever holds the secret's id. The key is never stored, echoed or
+    // logged here.
+    const { error } = await supabase.rpc("fn_put_provider_credential", {
+      p_provider: provider,
+      p_secret: api_key.trim(),
+      p_model: model,
+    });
+    if (error) console.error("connectProvider:", error.message);
   }
-  redirect(await sectionUrl(supabase, content_item_id));
+
+  // Connecting from Settings has no content item to return to.
+  redirect(content_item_id ? await sectionUrl(supabase, content_item_id) : "/settings/providers");
 }
 
 /**

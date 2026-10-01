@@ -83,7 +83,8 @@ export default async function ProvidersPage() {
           Connect
         </button>
         <p className="text-xs text-muted">
-          Keys are stored against your account only and used solely for your comprehension requests.
+          Your key is held in an encrypted vault, readable only by you, and used solely for your own
+          comprehension requests. It is never stored in the application database.
         </p>
       </form>
     </main>
