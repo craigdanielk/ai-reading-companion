@@ -5,15 +5,25 @@ import { TextList } from "@/components/TextList";
 import { LangBadge } from "@/components/LangBadge";
 import { KIND_ORDER, findKind, TEXT_KINDS } from "@/lib/text-kinds";
 import { coverUrl } from "@/lib/covers";
+import { SearchBox } from "@/components/SearchBox";
+
+function snippet(text: string, term: string): string {
+  const i = text.toLowerCase().indexOf(term.toLowerCase());
+  if (i < 0) return "";
+  const start = Math.max(0, i - 70);
+  const cut = text.slice(start, i + term.length + 110).replace(/\s+/g, " ").trim();
+  return (start > 0 ? "…" : "") + cut + "…";
+}
 
 export const metadata = { title: "Library" };
 
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string }>;
+  searchParams: Promise<{ kind?: string; q?: string }>;
 }) {
-  const { kind } = await searchParams;
+  const { kind, q } = await searchParams;
+  const term = (q || "").trim();
   const activeKind = TEXT_KINDS.some((k) => k.code === kind) ? (kind as string) : null;
 
   const supabase = await createClient();
@@ -46,6 +56,18 @@ export default async function LibraryPage({
     if (p) bookLangs.set(s.book_id, { source: p.source_language, target: p.target_language });
   }
 
+  // Search covers both what a text IS CALLED and what is INSIDE it — the latter
+  // is the one that matters when you are hunting for a half-remembered passage.
+  let inText: { id: string; book_id: string; title: string | null; body_text: string }[] = [];
+  if (term) {
+    const { data: hits } = await supabase
+      .from("content_item")
+      .select("id, book_id, title, body_text")
+      .ilike("body_text", "%" + term.replace(/[%_]/g, "") + "%")
+      .limit(25);
+    inText = (hits ?? []) as typeof inText;
+  }
+
   const all = books ?? [];
   // Covers are stored privately; sign the ones that came from storage.
   const signed = new Map<string, string | null>();
@@ -56,8 +78,17 @@ export default async function LibraryPage({
   );
   const orphans = (sections ?? []).filter((s) => !s.book_id);
 
-  const visible = activeKind ? all.filter((b) => (b.kind || "book") === activeKind) : all;
-  const heading = activeKind ? findKind(activeKind).plural : "All texts";
+  const byKind = activeKind ? all.filter((b) => (b.kind || "book") === activeKind) : all;
+  const needle = term.toLowerCase();
+  const visible = term
+    ? byKind.filter(
+        (b) =>
+          b.title.toLowerCase().includes(needle) ||
+          (b.author || "").toLowerCase().includes(needle) ||
+          inText.some((h) => h.book_id === b.id)
+      )
+    : byKind;
+  const heading = term ? "Results for “" + term + "”" : activeKind ? findKind(activeKind).plural : "All texts";
 
   const buckets = (activeKind ? [activeKind] : KIND_ORDER)
     .map((code) => ({
@@ -69,12 +100,15 @@ export default async function LibraryPage({
   return (
     <div className="flex h-full min-h-0">
       {/* middle pane — the texts, always visible so switching never means going back */}
-      <div className="hidden w-[19rem] shrink-0 border-r border-line lg:block">
+      <div className="hidden w-[19rem] shrink-0 flex-col border-r border-line lg:flex">
+        <SearchBox />
+        <div className="min-h-0 flex-1">
         <TextList
           texts={visible.map((b) => ({ id: b.id, title: b.title, author: b.author, kind: b.kind }))}
           heading={heading}
-          grouped={!activeKind}
+          grouped={!activeKind && !term}
         />
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -134,6 +168,37 @@ export default async function LibraryPage({
               </ul>
             </section>
           ))}
+
+          {term && inText.length > 0 && (
+            <section className="mt-10">
+              <h2 className="font-display text-[17px] font-semibold text-ink">Inside the texts</h2>
+              <ul className="mt-4 space-y-3">
+                {inText.map((h) => {
+                  const host = all.find((b) => b.id === h.book_id);
+                  if (!host) return null;
+                  return (
+                    <li key={h.id}>
+                      <Link
+                        href={"/book/" + h.book_id + "?s=" + h.id}
+                        className="-mx-3 block rounded-[6px] px-3 py-2 transition-colors hover:bg-paper-2/60"
+                      >
+                        <span className="block truncate font-display text-[13.5px] font-semibold text-ink">
+                          {host.title}
+                        </span>
+                        <span className="mt-0.5 block text-[13px] leading-relaxed text-ink-soft">
+                          {snippet(h.body_text || "", term)}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          {term && visible.length === 0 && inText.length === 0 && (
+            <p className="mt-10 text-[14px] text-muted">Nothing matches “{term}”.</p>
+          )}
 
           {all.length === 0 && orphans.length === 0 && (
             <p className="mt-14 max-w-[34rem] text-[14px] leading-relaxed text-muted">

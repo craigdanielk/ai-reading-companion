@@ -6,9 +6,11 @@ import {
   deleteBook,
   updateBodyText,
   setContentProfile,
-  addNote,
   setSectionSource,
   uploadCover,
+  removeCover,
+  moveSection,
+  removeSection,
 } from "@/app/actions";
 import { coverUrl } from "@/lib/covers";
 import { loadReaderData } from "@/lib/reader-data";
@@ -261,6 +263,64 @@ export default async function BookPage({
                       {book.cover_url ? "Replace cover" : "Add cover"}
                     </button>
                   </form>
+                  {book.cover_url && (
+                    <form action={removeCover} className="mt-2">
+                      <input type="hidden" name="id" value={book.id} />
+                      <button type="submit" className="text-[11px] text-muted transition-colors hover:text-danger">
+                        Remove cover
+                      </button>
+                    </form>
+                  )}
+
+                  {list.length > 1 && (
+                    <div className="mt-3 border-t border-line pt-3">
+                      <p className="text-[11px] tracking-wide">TEXTS IN THIS BOOK</p>
+                      <ul className="mt-2 space-y-1">
+                        {list.map((sec, i) => (
+                          <li key={sec.id} className="flex items-center gap-2 text-[12px]">
+                            <span className="min-w-0 flex-1 truncate text-ink-soft">{sec.title || "Untitled"}</span>
+                            <form action={moveSection}>
+                              <input type="hidden" name="id" value={sec.id} />
+                              <input type="hidden" name="book_id" value={book.id} />
+                              <input type="hidden" name="delta" value="-1" />
+                              <button
+                                type="submit"
+                                disabled={i === 0}
+                                className="px-1 text-muted transition-colors hover:text-ink disabled:opacity-30"
+                                aria-label="Move up"
+                              >
+                                &uarr;
+                              </button>
+                            </form>
+                            <form action={moveSection}>
+                              <input type="hidden" name="id" value={sec.id} />
+                              <input type="hidden" name="book_id" value={book.id} />
+                              <input type="hidden" name="delta" value="1" />
+                              <button
+                                type="submit"
+                                disabled={i === list.length - 1}
+                                className="px-1 text-muted transition-colors hover:text-ink disabled:opacity-30"
+                                aria-label="Move down"
+                              >
+                                &darr;
+                              </button>
+                            </form>
+                            <form action={removeSection}>
+                              <input type="hidden" name="id" value={sec.id} />
+                              <input type="hidden" name="book_id" value={book.id} />
+                              <button
+                                type="submit"
+                                className="px-1 text-muted transition-colors hover:text-danger"
+                                aria-label="Remove this text"
+                              >
+                                &times;
+                              </button>
+                            </form>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   <form action={setSectionSource} className="mt-3 space-y-2 border-t border-line pt-3">
                     <input type="hidden" name="content_item_id" value={current.id} />
@@ -327,7 +387,6 @@ export default async function BookPage({
             reading={reading}
             initialFraction={lastFraction}
             notes={personalNotes ?? []}
-            onAddNote={addNote}
           />
         ) : (
           <div className="mx-auto w-full max-w-2xl px-5 py-8">

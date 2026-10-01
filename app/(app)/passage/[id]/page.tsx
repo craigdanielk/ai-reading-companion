@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateBodyText, setContentProfile, addNote } from "@/app/actions";
+import { updateBodyText, setContentProfile } from "@/app/actions";
 import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { LangPicker } from "@/components/LangPicker";
@@ -139,7 +139,6 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
           reading={reading}
           initialFraction={lastFraction}
           notes={notes ?? []}
-          onAddNote={addNote}
         />
       </div>
     </div>

@@ -6,7 +6,7 @@ import { parseSections, parsePageSections } from "@/lib/providers/parse";
 import { snapRange } from "@/lib/text/range";
 import { findLanguage } from "@/lib/nuance/registry";
 import { LangBadge } from "@/components/LangBadge";
-import { saveReadingAppearance } from "@/app/actions";
+import { saveReadingAppearance, addNote, updateNote, deleteNote } from "@/app/actions";
 
 export interface Result {
   id: string | null;
@@ -185,7 +185,6 @@ export function Reader({
   reading,
   initialFraction,
   notes,
-  onAddNote,
 }: {
   contentItemId: string;
   title: string;
@@ -201,7 +200,6 @@ export function Reader({
   reading: ReadingAppearance;
   initialFraction: number | null;
   notes: NoteRow[];
-  onAddNote: (formData: FormData) => Promise<void>;
 }) {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -639,16 +637,43 @@ export function Reader({
             Nothing yet. A note is yours — it sits beside what the AI understood, and stays.
           </p>
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="space-y-3">
             {notes.map((n) => (
-              <li key={n.id} className="border-l-2 border-sun/70 pl-3 text-[13px] leading-relaxed text-ink-soft">
-                {n.body}
+              <li key={n.id} className="border-l-2 border-sun/70 pl-3">
+                <p className="text-[13px] leading-relaxed text-ink-soft">{n.body}</p>
+                <div className="mt-1.5 flex items-center gap-3">
+                  <details className="flex-1">
+                    <summary className="cursor-pointer text-[11.5px] text-muted transition-colors hover:text-ink">
+                      edit
+                    </summary>
+                    <form action={updateNote} className="mt-2">
+                      <input type="hidden" name="id" value={n.id} />
+                      <input type="hidden" name="content_item_id" value={contentItemId} />
+                      <textarea
+                        name="body"
+                        defaultValue={n.body ?? ""}
+                        rows={3}
+                        className="w-full resize-y rounded-input border border-line bg-paper px-3 py-2 text-[13px] leading-relaxed text-ink"
+                      />
+                      <button type="submit" className="mt-1.5 rounded-pill border border-line px-3 py-1 text-[11.5px]">
+                        Save
+                      </button>
+                    </form>
+                  </details>
+                  <form action={deleteNote}>
+                    <input type="hidden" name="id" value={n.id} />
+                    <input type="hidden" name="content_item_id" value={contentItemId} />
+                    <button type="submit" className="text-[11.5px] text-muted transition-colors hover:text-danger">
+                      delete
+                    </button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>
         )}
 
-        <form action={onAddNote} className="mt-4">
+        <form action={addNote} className="mt-4">
           <input type="hidden" name="content_item_id" value={contentItemId} />
           <textarea
             name="body"

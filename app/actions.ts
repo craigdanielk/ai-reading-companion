@@ -260,6 +260,86 @@ export async function uploadCover(formData: FormData): Promise<void> {
   redirect("/book/" + id);
 }
 
+export async function deleteNote(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+  const id = formData.get("id") as string;
+  const content_item_id = formData.get("content_item_id") as string;
+  const { error } = await supabase.from("note").delete().eq("id", id);
+  if (error) console.error("deleteNote:", error.message);
+  redirect(await sectionUrl(supabase, content_item_id));
+}
+
+export async function updateNote(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+  const id = formData.get("id") as string;
+  const content_item_id = formData.get("content_item_id") as string;
+  const body = ((formData.get("body") as string) || "").trim();
+  if (!body) redirect(await sectionUrl(supabase, content_item_id));
+  const { error } = await supabase.from("note").update({ body }).eq("id", id);
+  if (error) console.error("updateNote:", error.message);
+  redirect(await sectionUrl(supabase, content_item_id));
+}
+
+/** C2: back to the typeset cover. */
+export async function removeCover(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+  const id = formData.get("id") as string;
+  const { data: book } = await supabase.from("book").select("cover_url").eq("id", id).single();
+  const path = book?.cover_url as string | null;
+  if (path && !/^https?:\/\//.test(path)) {
+    await supabase.storage.from("content").remove([path]);
+  }
+  await supabase.from("book").update({ cover_url: null }).eq("id", id);
+  redirect("/book/" + id);
+}
+
+/** Reorder the texts inside a book. */
+export async function moveSection(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+  const id = formData.get("id") as string;
+  const book_id = formData.get("book_id") as string;
+  const delta = Number(formData.get("delta") || 0);
+
+  const { data: list } = await supabase
+    .from("content_item")
+    .select("id, position, created_at")
+    .eq("book_id", book_id)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
+  const ordered = list ?? [];
+  const at = ordered.findIndex((s) => s.id === id);
+  const to = at + delta;
+  if (at >= 0 && to >= 0 && to < ordered.length) {
+    const swapped = [...ordered];
+    [swapped[at], swapped[to]] = [swapped[to], swapped[at]];
+    await Promise.all(
+      swapped.map((s, i) => supabase.from("content_item").update({ position: i }).eq("id", s.id))
+    );
+  }
+  redirect("/book/" + book_id + "?s=" + id);
+}
+
+/** Remove one text from a book, with whatever was read in it. */
+export async function removeSection(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/login");
+  const id = formData.get("id") as string;
+  const book_id = formData.get("book_id") as string;
+  const { data: item } = await supabase.from("content_item").select("storage_ref").eq("id", id).single();
+  const path = item?.storage_ref as string | null;
+  if (path) await supabase.storage.from("content").remove([path]);
+  await supabase.from("content_item").delete().eq("id", id);
+  redirect("/book/" + book_id);
+}
 export async function deleteBook(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
