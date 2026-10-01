@@ -1,0 +1,340 @@
+[
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "211"
+    },
+    "html_length": 15637,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/index_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 30
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/index_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 30
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/login",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "211"
+    },
+    "html_length": 12664,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/login_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 17
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/login_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 17
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/privacy",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "194"
+    },
+    "html_length": 15644,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/privacy_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 30
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/privacy_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 30
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/library",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "650"
+    },
+    "html_length": 35022,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/library_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 118
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/library_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 70
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "798"
+    },
+    "html_length": 64470,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/book_afd3e20d-f9c0-4054-96c5-26b0c6ad6483_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 200
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/book_afd3e20d-f9c0-4054-96c5-26b0c6ad6483_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 156
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "781"
+    },
+    "html_length": 20181,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/book_afd3e20d-f9c0-4054-96c5-26b0c6ad6483_notes_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 49
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/book_afd3e20d-f9c0-4054-96c5-26b0c6ad6483_notes_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 37
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "790"
+    },
+    "html_length": 51641,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/passage_e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 138
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/passage_e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 125
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/saved",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "670"
+    },
+    "html_length": 22824,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/saved_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 65
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/saved_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 53
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/settings",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "646"
+    },
+    "html_length": 19300,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 55
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 43
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/settings/account",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "654"
+    },
+    "html_length": 16906,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_account_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 37
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_account_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 25
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/settings/preferences",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "790"
+    },
+    "html_length": 21018,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_preferences_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 43
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_preferences_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 31
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/settings/providers",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "828"
+    },
+    "html_length": 19977,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_providers_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 47
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/settings_providers_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 35
+      }
+    ]
+  },
+  {
+    "url": "https://ai-reading-companion-alpha.vercel.app/admin",
+    "http_status": 200,
+    "fetch_error": null,
+    "headers": {
+      "content-type": "text/html; charset=utf-8",
+      "x-fetch-ms": "670"
+    },
+    "html_length": 25304,
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/admin_desktop.png",
+        "width": 1440,
+        "height": 900,
+        "visible_elements": 86
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/admin_mobile.png",
+        "width": 375,
+        "height": 812,
+        "visible_elements": 74
+      }
+    ]
+  }
+]

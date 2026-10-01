@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
-import { resolveProvider } from "@/lib/providers/resolve";
+import { revalidatePath } from "next/cache";
 import { ocrImage } from "@/lib/providers/ocr";
 import { findKind, DEFAULT_KIND, TEXT_KINDS } from "@/lib/text-kinds";
 import { extractDocument, detectDocKind, titleFromFilename } from "@/lib/extract/document";
@@ -45,7 +45,11 @@ async function sectionUrl(
     .select("book_id")
     .eq("id", contentItemId)
     .maybeSingle();
-  return data?.book_id ? "/book/" + data.book_id : "/passage/" + contentItemId;
+  return data?.book_id ? "/book/" + data.book_id + "?s=" + contentItemId : "/passage/" + contentItemId;
+}
+
+function withNotice(url: string, notice: string): string {
+  return url + (url.includes("?") ? "&" : "?") + "notice=" + encodeURIComponent(notice);
 }
 
 /** Operator-only: mint an invite link for a new reader. */
@@ -149,7 +153,7 @@ export async function setContentProfile(formData: FormData): Promise<void> {
     error = res.error;
   }
   if (error) console.error("setContentProfile:", error.message);
-  redirect(await sectionUrl(supabase, content_item_id));
+  redirect(withNotice(await sectionUrl(supabase, content_item_id), error ? "error" : "saved"));
 }
 
 export async function updateBodyText(formData: FormData): Promise<void> {
@@ -182,7 +186,7 @@ export async function addNote(formData: FormData): Promise<void> {
     kind: "personal",
   });
   if (error) console.error("addNote:", error.message);
-  redirect(await sectionUrl(supabase, content_item_id));
+  redirect(withNotice(await sectionUrl(supabase, content_item_id), error ? "error" : "note-saved"));
 }
 
 export async function createBook(formData: FormData): Promise<void> {
@@ -202,6 +206,7 @@ export async function createBook(formData: FormData): Promise<void> {
     console.error("createBook:", error?.message);
     redirect("/library");
   }
+  revalidatePath("/", "layout");
   redirect("/book/" + book.id);
 }
 
@@ -223,6 +228,7 @@ export async function updateBook(formData: FormData): Promise<void> {
       .eq("id", id);
     if (error) console.error("updateBook:", error.message);
   }
+  revalidatePath("/", "layout");
   redirect("/book/" + id);
 }
 
@@ -268,7 +274,7 @@ export async function deleteNote(formData: FormData): Promise<void> {
   const content_item_id = formData.get("content_item_id") as string;
   const { error } = await supabase.from("note").delete().eq("id", id);
   if (error) console.error("deleteNote:", error.message);
-  redirect(await sectionUrl(supabase, content_item_id));
+  redirect(withNotice(await sectionUrl(supabase, content_item_id), error ? "error" : "note-deleted"));
 }
 
 export async function updateNote(formData: FormData): Promise<void> {
@@ -281,7 +287,7 @@ export async function updateNote(formData: FormData): Promise<void> {
   if (!body) redirect(await sectionUrl(supabase, content_item_id));
   const { error } = await supabase.from("note").update({ body }).eq("id", id);
   if (error) console.error("updateNote:", error.message);
-  redirect(await sectionUrl(supabase, content_item_id));
+  redirect(withNotice(await sectionUrl(supabase, content_item_id), error ? "error" : "note-saved"));
 }
 
 /** C2: back to the typeset cover. */
@@ -324,6 +330,7 @@ export async function moveSection(formData: FormData): Promise<void> {
       swapped.map((s, i) => supabase.from("content_item").update({ position: i }).eq("id", s.id))
     );
   }
+  revalidatePath("/", "layout");
   redirect("/book/" + book_id + "?s=" + id);
 }
 
@@ -338,6 +345,7 @@ export async function removeSection(formData: FormData): Promise<void> {
   const path = item?.storage_ref as string | null;
   if (path) await supabase.storage.from("content").remove([path]);
   await supabase.from("content_item").delete().eq("id", id);
+  revalidatePath("/", "layout");
   redirect("/book/" + book_id);
 }
 export async function deleteBook(formData: FormData): Promise<void> {
@@ -359,9 +367,12 @@ export async function deleteBook(formData: FormData): Promise<void> {
   }
 
   // Sections cascade to profiles, selections, extracted text, results and notes.
-  await supabase.from("content_item").delete().eq("book_id", id);
-  await supabase.from("book").delete().eq("id", id);
-  redirect("/library");
+  const { error: sectionError } = await supabase.from("content_item").delete().eq("book_id", id);
+  if (sectionError) redirect("/book/" + id + "?notice=error");
+  const { error: bookError } = await supabase.from("book").delete().eq("id", id);
+  if (bookError) redirect("/book/" + id + "?notice=error");
+  revalidatePath("/", "layout");
+  redirect("/library?notice=deleted");
 }
 
 // Title from the text's own first line, cut on a word boundary.
@@ -449,6 +460,7 @@ export async function createText(formData: FormData): Promise<void> {
   });
   if (profileErr) console.error("createText profile:", profileErr.message);
 
+  revalidatePath("/", "layout");
   redirect("/book/" + bookId + "?s=" + item.id);
 }
 
@@ -468,7 +480,7 @@ export async function savePreferences(formData: FormData): Promise<void> {
     { onConflict: "user_id" }
   );
   if (error) console.error("savePreferences:", error.message);
-  redirect("/settings/preferences");
+  redirect("/settings/preferences?notice=" + (error ? "error" : "saved"));
 }
 
 // Reading-appearance choices — typeface, size, theme and measure. Applied live
@@ -494,7 +506,7 @@ export async function saveReadingAppearance(formData: FormData): Promise<void> {
     },
     { onConflict: "user_id" }
   );
-  if (error) console.error("saveReadingAppearance:", error.message);
+  if (error) throw new Error("Could not save reading appearance.");
 }
 
 export async function deleteProvider(formData: FormData): Promise<void> {
@@ -505,7 +517,7 @@ export async function deleteProvider(formData: FormData): Promise<void> {
   const id = formData.get("id") as string;
   const { error } = await supabase.rpc("fn_delete_provider_credential", { p_connection_id: id });
   if (error) console.error("deleteProvider:", error.message);
-  redirect("/settings/providers");
+  redirect("/settings/providers?notice=" + (error ? "error" : "removed"));
 }
 
 export async function signOut(): Promise<void> {
@@ -533,11 +545,14 @@ export async function connectProvider(formData: FormData): Promise<void> {
       p_secret: api_key.trim(),
       p_model: model,
     });
-    if (error) console.error("connectProvider:", error.message);
+    if (error) {
+      console.error("connectProvider:", error.message);
+      redirect("/settings/providers?notice=error");
+    }
   }
 
   // Connecting from Settings has no content item to return to.
-  redirect(content_item_id ? await sectionUrl(supabase, content_item_id) : "/settings/providers");
+  redirect(content_item_id ? withNotice(await sectionUrl(supabase, content_item_id), "connected") : "/settings/providers?notice=connected");
 }
 
 /**

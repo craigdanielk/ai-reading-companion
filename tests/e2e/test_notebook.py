@@ -1,5 +1,18 @@
 from helpers import BASE_URL, first_book_href
 
+def test_saved_history_groups_by_text_kind_and_newest_date(page):
+    page.goto(BASE_URL + "/saved")
+    groups = page.locator("main section")
+    assert groups.count() >= 1
+    newest_by_group = []
+    for group in groups.all():
+        assert group.locator("h2").inner_text().strip()
+        dates = group.locator("time[datetime]").evaluate_all("els => els.map(el => el.dateTime)")
+        assert dates == sorted(dates, reverse=True), "entries within a text kind must be newest first"
+        if dates:
+            newest_by_group.append(dates[0])
+    assert newest_by_group == sorted(newest_by_group, reverse=True), "most recently active text kind should be first"
+
 def test_notes_page_renders_and_deep_links(page):
     href = first_book_href(page)
     assert href

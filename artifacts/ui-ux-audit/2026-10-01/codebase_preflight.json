@@ -1,0 +1,23 @@
+{
+  "preflight_version": "1",
+  "repo_root": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion",
+  "framework_guess": "unknown",
+  "page_routes": [],
+  "suggested_local_seeds": [],
+  "static_signals": [],
+  "lint": {
+    "invoked": false,
+    "reason": "--skip-lint"
+  },
+  "canonical_bundle_resolver": {
+    "resolver": "explicit_output_dir",
+    "control_tower": "/Users/craigkunte/Developer/GitHub/services/aurelix-ag/aurelix-uiux-audit",
+    "bundle_root_relative": "artifacts/ui-ux-audit",
+    "target_slug": "(explicit-output-dir)"
+  },
+  "notes": [
+    "Seed URLs use placeholders \u2014 replace ids/slugs with valid data.",
+    "Start local UX crawl after npm run dev; use localhost base + seeds.",
+    "Bundle path overridden via --output-dir; pair run_ui_ux_audit.py --preflight-json to this codebase_preflight.json explicitly."
+  ]
+}

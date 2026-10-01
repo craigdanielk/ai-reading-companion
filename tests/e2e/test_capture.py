@@ -3,7 +3,8 @@ from helpers import BASE_URL
 def _open_sheet(page):
     page.goto(BASE_URL + "/library")
     page.wait_for_timeout(1200)
-    page.get_by_role("button", name="New text").first.click()
+    page.get_by_role("button", name="New").first.click()
+    page.get_by_role("dialog", name="Add to your library").get_by_role("button", name="Note").click()
     page.wait_for_selector('text=Scan or upload', timeout=15000)
 
 def test_capture_offers_every_source(page):

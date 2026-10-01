@@ -22,7 +22,7 @@ export function SearchBox() {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search texts and contents…"
         aria-label="Search"
-        className="w-full rounded-pill border border-line bg-paper px-3 py-1.5 text-[12.5px] text-ink placeholder:text-muted"
+        className="min-h-11 w-full rounded-pill border border-line bg-paper px-3 py-1.5 text-[12.5px] text-ink placeholder:text-muted"
       />
     </form>
   );

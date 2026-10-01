@@ -1,0 +1,1377 @@
+meta:
+  generated_at: '2026-10-01T10:17:07.769695+00:00'
+  runner: control_tower/scripts/run_ui_ux_audit.py
+  framework_version: UI/UX Architectural Audit v1.0
+recommended_tasks:
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/login'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/login'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/login'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 1 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/login'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/login'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/privacy'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/privacy'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/privacy'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 1 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/privacy'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/privacy'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/library'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/library'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/library'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/library'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/library'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/library'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: No breadcrumb navigation detected
+  layer: L2_information_architecture
+  human_label: information-architecture
+  human_description: Evaluates navigation structure, content organization, and findability
+    of information.
+  priority: P3
+  acceptance_criteria:
+  - Add breadcrumb nav with aria-label='breadcrumb'
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - navigation
+  - footer
+  - category-grid
+  rule_id: breadcrumb
+  state: FAIL
+- title: 23 form control(s) without explicit label association
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add <label for> or aria-label
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: form_label_association
+  state: FAIL
+- title: 'Too many unique font families (40): var(--font-display)" title="german (deutsch)"
+    aria-hidden="true">ß</span>german</span></label><label class="cursor-pointer"><input
+    type="radio" class="peer sr-only"'
+  layer: L4_visual_systems
+  human_label: visual-systems
+  human_description: Reviews visual design consistency, typography, colour systems,
+    and spacing.
+  priority: P2
+  acceptance_criteria:
+  - Limit to 2-3 font families max
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - feature-grid
+  - stats
+  - logo-cloud
+  rule_id: font_family_variety
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No obvious CTA links in copy (heuristic)
+  layer: L8_conversion_architecture
+  human_label: conversion-architecture
+  human_description: Measures conversion-funnel effectiveness, CTA placement, and
+    trust-signal deployment.
+  priority: P2
+  acceptance_criteria:
+  - Add a clear call-to-action link or button
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - cta-strip
+  - pricing
+  - testimonials
+  rule_id: cta_presence
+  state: FAIL
+- title: No trust signals detected (trusted, certified, secure, guarantee, verified,
+    etc.)
+  layer: L8_conversion_architecture
+  human_label: conversion-architecture
+  human_description: Measures conversion-funnel effectiveness, CTA placement, and
+    trust-signal deployment.
+  priority: P3
+  acceptance_criteria:
+  - Add trust badges, certifications, or trust language
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - cta-strip
+  - pricing
+  - testimonials
+  rule_id: trust_signals
+  state: FAIL
+- title: Form with 15 visible fields — high friction
+  layer: L10_behavioural_friction
+  human_label: behavioural-friction
+  human_description: Identifies cognitive-load issues, user confusion points, and
+    drop-off causes.
+  priority: P2
+  acceptance_criteria:
+  - Split into multi-step form or reduce fields to essentials
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483'
+  suggested_archetypes:
+  - content-restructure
+  - faq-accordion
+  rule_id: form_field_count
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/book/afd3e20d-f9c0-4054-96c5-26b0c6ad6483/notes'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: No breadcrumb navigation detected
+  layer: L2_information_architecture
+  human_label: information-architecture
+  human_description: Evaluates navigation structure, content organization, and findability
+    of information.
+  priority: P3
+  acceptance_criteria:
+  - Add breadcrumb nav with aria-label='breadcrumb'
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - navigation
+  - footer
+  - category-grid
+  rule_id: breadcrumb
+  state: FAIL
+- title: 16 form control(s) without explicit label association
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add <label for> or aria-label
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: form_label_association
+  state: FAIL
+- title: 'Too many unique font families (20): var(--font-display)" title="german (deutsch)"
+    aria-hidden="true">ß</span>german</span></label><label class="cursor-pointer"><input
+    type="radio" class="peer sr-only"'
+  layer: L4_visual_systems
+  human_label: visual-systems
+  human_description: Reviews visual design consistency, typography, colour systems,
+    and spacing.
+  priority: P2
+  acceptance_criteria:
+  - Limit to 2-3 font families max
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - feature-grid
+  - stats
+  - logo-cloud
+  rule_id: font_family_variety
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: Form with 15 visible fields — high friction
+  layer: L10_behavioural_friction
+  human_label: behavioural-friction
+  human_description: Identifies cognitive-load issues, user confusion points, and
+    drop-off causes.
+  priority: P2
+  acceptance_criteria:
+  - Split into multi-step form or reduce fields to essentials
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5'
+  suggested_archetypes:
+  - content-restructure
+  - faq-accordion
+  rule_id: form_field_count
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/saved'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/saved'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/saved'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/saved'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/saved'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/saved'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/account'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/account'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/account'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/account'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/account'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/account'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 4 form control(s) without explicit label association
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add <label for> or aria-label
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: form_label_association
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/preferences'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 3 form control(s) without explicit label association
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add <label for> or aria-label
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: form_label_association
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/settings/providers'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: Meta description length (37 chars) outside optimal 50-160 range
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Adjust meta description to 50-160 characters
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: meta_description_length
+  state: FAIL
+- title: 'Missing Open Graph tags: og:title, og:description, og:image'
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P2
+  acceptance_criteria:
+  - Add Open Graph meta tags
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: open_graph_tags
+  state: FAIL
+- title: No apple-touch-icon detected
+  layer: L1_strategic_ux
+  human_label: strategic-ux
+  human_description: Measures strategic UX alignment, brand positioning, and high-level
+    user experience goals.
+  priority: P3
+  acceptance_criteria:
+  - Add <link rel='apple-touch-icon' href='icon-180.png'>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - hero
+  - announcement-bar
+  - trust-badges
+  rule_id: apple_touch_icon
+  state: FAIL
+- title: 2 form control(s) without explicit label association
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add <label for> or aria-label
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: form_label_association
+  state: FAIL
+- title: 2 image(s) missing alt text
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P1
+  acceptance_criteria:
+  - Add descriptive alt or decorative alt=''
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: image_alt_text
+  state: FAIL
+- title: No skip-to-content link detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add <a href='#main-content' class='sr-only'>Skip to content</a>
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: skip_to_content
+  state: FAIL
+- title: No focus-visible / focus ring styles detected
+  layer: L5_accessibility
+  human_label: accessibility
+  human_description: Measures WCAG compliance, screen-reader support, and inclusive
+    design practices.
+  priority: P2
+  acceptance_criteria:
+  - Add :focus-visible styles or Tailwind focus:ring utilities
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - accessibility-pass
+  rule_id: focus_visible_styles
+  state: FAIL
+- title: No obvious CTA links in copy (heuristic)
+  layer: L8_conversion_architecture
+  human_label: conversion-architecture
+  human_description: Measures conversion-funnel effectiveness, CTA placement, and
+    trust-signal deployment.
+  priority: P2
+  acceptance_criteria:
+  - Add a clear call-to-action link or button
+  - 'Verify on: https://ai-reading-companion-alpha.vercel.app/admin'
+  suggested_archetypes:
+  - cta-strip
+  - pricing
+  - testimonials
+  rule_id: cta_presence
+  state: FAIL
+priority_matrix:
+  critical: []
+  high:
+  - 2 image(s) missing alt text
+  - 1 image(s) missing alt text
+  - 1 image(s) missing alt text
+  - 2 image(s) missing alt text
+  - 23 form control(s) without explicit label association
+  - 2 image(s) missing alt text
+  - 2 image(s) missing alt text
+  - 16 form control(s) without explicit label association
+  - 2 image(s) missing alt text
+  - 2 image(s) missing alt text
+  - 2 image(s) missing alt text
+  - 2 image(s) missing alt text
+  - 4 form control(s) without explicit label association
+  - 2 image(s) missing alt text
+  - 3 form control(s) without explicit label association
+  - 2 image(s) missing alt text
+  - 2 form control(s) without explicit label association
+  - 2 image(s) missing alt text
+  medium:
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - 'Too many unique font families (40): var(--font-display)" title="german (deutsch)"
+    aria-hidden="true">ß</span>german</span></label><label class="cursor-pointer"><input
+    type="radio" class="peer sr-only" name="source_language" value="ja"><span class="flex
+    items-center gap-1.5 rounded-pill border border-line bg-paper py-1 pl-1 pr-3 text-[13px]
+    text-ink-soft transition-colors peer-checked:border-ember peer-checked:bg-paper-2
+    peer-checked:font-medium peer-checked:text-ink peer-focus-visible:ring-2 peer-focus-visible:ring-ember"
+    title="日本語"><span class="inline-flex shrink-0 items-center justify-center rounded-full
+    border font-semibold h-5 w-5 text-[11px]" style="background:hsl(340 62% 93%),
+    asking if someone is interested in something. the tone is casual and conversational,
+    \"metadataboundary\"]\n10:i[68027, \"/_next/static/immutable/chunks/3y_ljys8r1-f5.js\,
+    \"default\, var(--font-sans)" title="japanese (日本語)" aria-hidden="true">あ</span>japanese</span></label></div></fieldset></div><div><span
+    class="text-[11px] tracking-wide">reading into</span><fieldset class="mt-1"><legend
+    class="sr-only">target language</legend><div class="flex flex-wrap gap-1.5"><label
+    class="cursor-pointer"><input type="radio" class="peer sr-only" name="target_language"
+    checked="" value="en"><span class="flex items-center gap-1.5 rounded-pill border
+    border-line bg-paper py-1 pl-1 pr-3 text-[13px] text-ink-soft transition-colors
+    peer-checked:border-ember peer-checked:bg-paper-2 peer-checked:font-medium peer-checked:text-ink
+    peer-focus-visible:ring-2 peer-focus-visible:ring-ember" title="english"><span
+    class="inline-flex shrink-0 items-center justify-center rounded-full border font-semibold
+    h-5 w-5 text-[11px]" style="background:hsl(216 62% 93%)'
+  - No skip-to-content link detected
+  - No obvious CTA links in copy (heuristic)
+  - Form with 15 visible fields — high friction
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - 'Too many unique font families (20): var(--font-display)" title="german (deutsch)"
+    aria-hidden="true">ß</span>german</span></label><label class="cursor-pointer"><input
+    type="radio" class="peer sr-only" name="source_language" value="ja"><span class="flex
+    items-center gap-1.5 rounded-pill border border-line bg-paper py-1 pl-1 pr-3 text-[13px]
+    text-ink-soft transition-colors peer-checked:border-ember peer-checked:bg-paper-2
+    peer-checked:font-medium peer-checked:text-ink peer-focus-visible:ring-2 peer-focus-visible:ring-ember"
+    title="日本語"><span class="inline-flex shrink-0 items-center justify-center rounded-full
+    border font-semibold h-5 w-5 text-[11px]" style="background:hsl(340 62% 93%),
+    asking if someone is interested in something. the tone is casual and conversational,
+    var(--font-sans)" title="japanese (日本語)" aria-hidden="true">あ</span>japanese</span></label></div></fieldset></div><div><span
+    class="text-[11px] tracking-wide">reading into</span><fieldset class="mt-1"><legend
+    class="sr-only">target language</legend><div class="flex flex-wrap gap-1.5"><label
+    class="cursor-pointer"><input type="radio" class="peer sr-only" name="target_language"
+    checked="" value="en"><span class="flex items-center gap-1.5 rounded-pill border
+    border-line bg-paper py-1 pl-1 pr-3 text-[13px] text-ink-soft transition-colors
+    peer-checked:border-ember peer-checked:bg-paper-2 peer-checked:font-medium peer-checked:text-ink
+    peer-focus-visible:ring-2 peer-focus-visible:ring-ember" title="english"><span
+    class="inline-flex shrink-0 items-center justify-center rounded-full border font-semibold
+    h-5 w-5 text-[11px]" style="background:hsl(216 62% 93%), anda tertarik?</mark></p><aside
+    class="gloss-in mt-2 border-l border-line pl-4 lg:mt-0 lg:border-l-0 lg:pl-0 lg:pt-[3px]"><div
+    class="space-y-2.5"><p class="font-display text-[16px] leading-[1.55] text-ink">興味がありますか？</p></div></aside></div></div><section
+    class="gloss-in mt-12 border-t border-line pt-6"><p class="text-[12px] text-muted">the
+    whole text</p><div class="mt-3"><div class="space-y-2.5"><p class="font-display
+    text-[16px] leading-[1.55] text-ink">this text is a short, var(--font-display)"
+    title="german (deutsch)" aria-hidden="true">ß</span>german</span></label><label
+    class="cursor-pointer"><input type="radio" class="peer sr-only" name="target_language"
+    value="ja"><span class="flex items-center gap-1.5 rounded-pill border border-line
+    bg-paper py-1 pl-1 pr-3 text-[13px] text-ink-soft transition-colors peer-checked:border-ember
+    peer-checked:bg-paper-2 peer-checked:font-medium peer-checked:text-ink peer-focus-visible:ring-2
+    peer-focus-visible:ring-ember" title="日本語"><span class="inline-flex shrink-0 items-center
+    justify-center rounded-full border font-semibold h-5 w-5 text-[11px]" style="background:hsl(340
+    62% 93%), noto sans arabic'
+  - No skip-to-content link detected
+  - Form with 15 visible fields — high friction
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - 'Missing Open Graph tags: og:title, og:description, og:image'
+  - No skip-to-content link detected
+  - No focus-visible / focus ring styles detected
+  - No obvious CTA links in copy (heuristic)
+  low:
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - No breadcrumb navigation detected
+  - No trust signals detected (trusted, certified, secure, guarantee, verified, etc.)
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - No breadcrumb navigation detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected
+  - Meta description length (37 chars) outside optimal 50-160 range
+  - No apple-touch-icon detected

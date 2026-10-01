@@ -1,0 +1,836 @@
+[
+  {
+    "width": 1440,
+    "route": "/library",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".pt-1"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .gap-2\\.5.items-baseline.flex > .sm\\:inline.hidden.text-\\[12px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .group.block > .gap-1\\.5.mt-3.truncate > .truncate"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .group.block > .gap-1\\.5.mt-3.truncate > .truncate"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .group.block > .gap-1\\.5.mt-3.truncate > .truncate"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(5) > .gap-2\\.5.items-baseline.flex > .sm\\:inline.hidden.text-\\[12px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".pt-1"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".hover\\:text-ink[href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-x-3 > .text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".hover\\:text-ink:nth-child(4)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".sm\\:inline"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "button[data-testid=\"whole-text-action\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".underline.decoration-line.underline-offset-4:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".space-y-2\\.5 > .text-\\[11px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".mr-1\\.5"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".group-open\\:hidden"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".tabular-nums"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".min-h-0.flex-col.flex-1 > details > summary"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".pt-1"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".hover\\:text-ink[href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".sm\\:inline"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".disabled\\:opacity-40"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".underline.decoration-line.underline-offset-4:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".border-l > .space-y-2\\.5 > .text-\\[11px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section > .text-\\[12px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".mt-3 > .space-y-2\\.5 > .text-\\[11px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".tabular-nums"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/saved",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".pt-1"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".items-baseline > .text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.57 (foreground color: #8c7a6b, background color: #f6eee5, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.57 (foreground color: #8c7a6b, background color: #f6eee5, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.57 (foreground color: #8c7a6b, background color: #f6eee5, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(4) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(4) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(4) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(5) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(5) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(5) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(6) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(6) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(6) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/settings",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              "p"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/settings/preferences",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".pt-1"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".hover\\:text-ember"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/settings/providers",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".pt-1"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.82 (foreground color: #8c7a6b, background color: #fbf6f1, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".hover\\:text-ember"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".tracking-wide"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.76 (foreground color: #8c7a6b, background color: #faf4ed, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".bg-paper-2\\/50 > p:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.76 (foreground color: #8c7a6b, background color: #faf4ed, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".space-y-4 > p"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/library",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              "li:nth-child(1) > .group.block > .gap-1\\.5.mt-3.truncate > .truncate"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .group.block > .gap-1\\.5.mt-3.truncate > .truncate"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.transition-colors[href$=\"saved\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.transition-colors[href$=\"settings\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:text-ink[href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-x-3 > .text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".hover\\:text-ink:nth-child(4)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "button[data-testid=\"whole-text-action\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".underline.decoration-line.underline-offset-4:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".space-y-2\\.5 > .text-\\[11px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".mr-1\\.5"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".group-open\\:hidden"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"saved\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"settings\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:text-ink[href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".disabled\\:opacity-40"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".underline.decoration-line.underline-offset-4:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".border-l > .space-y-2\\.5 > .text-\\[11px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section > .text-\\[12px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".mt-3 > .space-y-2\\.5 > .text-\\[11px\\]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".tabular-nums"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.67 (foreground color: #8a7353, background color: #f2e7cf, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"saved\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"settings\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/saved",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".items-baseline > .text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(1) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(2) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(3) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(4) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(4) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(4) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(5) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(5) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(5) > .rounded-card.py-3.border > .line-clamp-2.text-\\[12px\\].text-muted"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(6) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "li:nth-child(6) > .rounded-card.py-3.border > .flex-wrap.gap-x-2.gap-y-1 > span:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"settings\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/settings",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"library\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"saved\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/settings/preferences",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:text-ember"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\].transition-colors:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"saved\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 375,
+    "route": "/settings/providers",
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "nodes": [
+          {
+            "target": [
+              ".hover\\:text-ember"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".tracking-wide"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.76 (foreground color: #8c7a6b, background color: #faf4ed, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".bg-paper-2\\/50 > p:nth-child(3)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.76 (foreground color: #8c7a6b, background color: #faf4ed, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".space-y-4 > p"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\].transition-colors:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              ".gap-0\\.5.text-\\[10\\.5px\\][href$=\"saved\"]"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.94 (foreground color: #8c7a6b, background color: #fdfaf6, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+  }
+]

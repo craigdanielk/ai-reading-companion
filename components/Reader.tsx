@@ -17,12 +17,14 @@ import {
 } from "@/lib/actions/registry";
 import { LangBadge } from "@/components/LangBadge";
 import { saveReadingAppearance, addNote, updateNote, deleteNote } from "@/app/actions";
+import { FormSubmitButton, ConfirmDeleteButton } from "@/components/FormButtons";
 
 export interface Result {
   id: string | null;
   mode: "passage" | "page";
   /** Which verb produced it. */
   action: string;
+  targetLanguage?: string | null;
   original: string | null;
   understanding: string | null;
   terms: string[] | null;
@@ -73,12 +75,13 @@ interface SessionGloss {
 }
 const sessionGlosses = new Map<string, SessionGloss[]>();
 
-function parseResult(raw: string, actionId: string, scope: Scope): Result {
+function parseResult(raw: string, actionId: string, scope: Scope, targetLanguage: string): Result {
   const p = parseAction(raw, actionId, scope);
   return {
     id: null,
     mode: scope === "text" ? "page" : "passage",
     action: actionId,
+    targetLanguage,
     original: p.original,
     understanding: p.understanding,
     terms: p.terms,
@@ -181,7 +184,6 @@ export function Reader({
   sourceLanguage,
   targetLanguage,
   domain,
-  depth,
   focusSelection,
   reading,
   initialFraction,
@@ -196,7 +198,6 @@ export function Reader({
   sourceLanguage: string;
   targetLanguage: string;
   domain: string;
-  depth: string;
   focusSelection?: string | null;
   reading: ReadingAppearance;
   initialFraction: number | null;
@@ -207,15 +208,19 @@ export function Reader({
   const textRef = useRef<HTMLDivElement | null>(null);
   const abort = useRef<AbortController | null>(null);
   const restored = useRef(false);
+  const pagedRestored = useRef(false);
   const runSeq = useRef(0);
   const beaconTimer = useRef<number | undefined>(undefined);
   const pageNoteRef = useRef<HTMLElement | null>(null);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+  const pickerOriginRef = useRef<HTMLElement | null>(null);
 
   const blocks = useMemo(() => splitBlocks(bodyText), [bodyText]);
 
   // appearance — the device is yours; choices apply live and are remembered
   const [appearance, setAppearance] = useState<ReadingAppearance>(reading);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [appearanceStatus, setAppearanceStatus] = useState("");
   const [immersed, setImmersed] = useState(false);
   const [progress, setProgress] = useState(() => initialFraction ?? 0);
 
@@ -249,6 +254,7 @@ export function Reader({
   const step = pageWidth + GUTTER_PX;
   const appearanceRef = useRef(reading);
   const pageCountRef = useRef(1);
+  const appearanceSaveSeq = useRef(0);
   appearanceRef.current = appearance;
   pageCountRef.current = pageCount;
 
@@ -264,7 +270,7 @@ export function Reader({
     [selections, fresh]
   );
 
-  const live: Result | null = streamed ? parseResult(streamed, activeAction, activeScope) : null;
+  const live: Result | null = streamed ? parseResult(streamed, activeAction, activeScope, intoLang) : null;
 
   const glossByBlock = useMemo(() => {
     const map = new Map<number, Result>();
@@ -339,7 +345,7 @@ export function Reader({
         setStreamed(acc);
       }
       if (selection && acc.trim() && seq === runSeq.current) {
-        const result = parseResult(acc, action.id, scope);
+        const result = parseResult(acc, action.id, scope, intoLang);
         const known = sessionHighlights.get(contentItemId) ?? [];
         if (!known.some((r) => r.start === selection.start && r.end === selection.end)) {
           const next = [...known, selection];
@@ -377,13 +383,17 @@ export function Reader({
 
   function applyAppearance(next: ReadingAppearance) {
     setAppearance(next);
+    setAppearanceStatus("Saving…");
+    const seq = ++appearanceSaveSeq.current;
     const fd = new FormData();
     fd.set("reading_font", next.font);
     fd.set("reading_size", next.size);
     fd.set("reading_theme", next.theme);
     fd.set("reading_measure", next.measure);
     fd.set("reading_paged", next.paged ? "pages" : "scroll");
-    void saveReadingAppearance(fd);
+    void saveReadingAppearance(fd)
+      .then(() => { if (seq === appearanceSaveSeq.current) setAppearanceStatus("Saved"); })
+      .catch(() => { if (seq === appearanceSaveSeq.current) setAppearanceStatus("Could not save. Try again."); });
   }
 
   // position: read progress, restore once, beacon on scroll (debounced)
@@ -410,19 +420,37 @@ export function Reader({
   }, [contentItemId]);
 
   useEffect(() => {
-    if (restored.current || focusSelection) return;
+    if (appearance.paged || restored.current || focusSelection) return;
     if (initialFraction == null || initialFraction <= 0.001) return;
     restored.current = true;
     const sc = scrollParent(rootRef.current);
     requestAnimationFrame(() => {
       sc.scrollTop = initialFraction * (sc.scrollHeight - sc.clientHeight);
     });
-  }, [initialFraction, focusSelection]);
+  }, [appearance.paged, initialFraction, focusSelection]);
+
+  useEffect(() => {
+    if (!appearance.paged || pagedRestored.current || focusSelection || pageCount <= 1) return;
+    pagedRestored.current = true;
+    if (initialFraction != null && initialFraction > 0) {
+      requestAnimationFrame(() => setPage(Math.max(0, Math.min(Math.round(initialFraction * (pageCount - 1)), pageCount - 1))));
+    }
+  }, [appearance.paged, pageCount, initialFraction, focusSelection]);
 
   // keyboard: space and arrows turn the page
   useEffect(() => {
+    if (popover) pickerRef.current?.focus();
+    else if (pickerOriginRef.current) {
+      pickerOriginRef.current.focus();
+      pickerOriginRef.current = null;
+    }
+  }, [popover]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (e.isComposing || target?.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) return;
       const sc = scrollParent(rootRef.current);
       const h = sc.clientHeight * 0.9;
       const paged = appearanceRef.current.paged;
@@ -455,24 +483,30 @@ export function Reader({
     return () => window.removeEventListener("keydown", onKey);
   }, [turn]);
 
-  function onTextClick(e: React.MouseEvent) {
-    const sel = window.getSelection();
-    if (sel && !sel.isCollapsed) return;
-    const el = blockEl(e.target as Node);
-    if (!el) return;
+  function openBlock(el: HTMLElement) {
     const block = blocks.find((b) => b.start === Number(el.dataset.start));
     if (!block) return;
     // Tapping a paragraph used to run comprehension immediately. It now opens
     // the picker anchored to that paragraph, so the reader chooses the verb.
     const rect = el.getBoundingClientRect();
+    pickerOriginRef.current = el;
     setMenuOpen(false);
+    const menuHeight = Math.min(window.innerHeight * 0.7, 448);
+    const menuWidth = Math.min(312, window.innerWidth * 0.92);
     setPopover({
       start: block.start,
       end: block.end,
       scope: "passage",
-      top: rect.top > 70 ? rect.top - 6 : rect.bottom + 10,
-      left: Math.min(Math.max(rect.left + rect.width / 2, 150), window.innerWidth - 150),
+      top: Math.max(48, Math.min(rect.top > 70 ? rect.top - 6 : rect.bottom + 10, window.innerHeight - menuHeight - 12)),
+      left: Math.min(Math.max(rect.left + rect.width / 2, menuWidth / 2 + 8), window.innerWidth - menuWidth / 2 - 8),
     });
+  }
+
+  function onTextClick(e: React.MouseEvent) {
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) return;
+    const el = blockEl(e.target as Node);
+    if (el) openBlock(el);
   }
 
   function onTextSelection() {
@@ -499,12 +533,15 @@ export function Reader({
       return;
     }
     const rect = range.getBoundingClientRect();
+    const menuHeight = Math.min(window.innerHeight * 0.7, 448);
+    const menuWidth = Math.min(312, window.innerWidth * 0.92);
+    pickerOriginRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : startEl;
     setPopover({
       start,
       end,
       scope: scopeForSelection(bodyText.slice(start, end)),
-      top: rect.top > 70 ? rect.top - 46 : rect.bottom + 10,
-      left: Math.min(Math.max(rect.left + rect.width / 2, 70), window.innerWidth - 70),
+      top: Math.max(48, Math.min(rect.top > 70 ? rect.top - 46 : rect.bottom + 10, window.innerHeight - menuHeight - 12)),
+      left: Math.min(Math.max(rect.left + rect.width / 2, menuWidth / 2 + 8), window.innerWidth - menuWidth / 2 - 8),
     });
   }
 
@@ -519,7 +556,7 @@ export function Reader({
     if (!target) return;
     const idx = blocks.findIndex((b) => target.end > b.start && target.start < b.end);
     if (idx < 0) return;
-    setFocusedBlock(idx);
+    requestAnimationFrame(() => setFocusedBlock(idx));
     const el = document.querySelector('[data-block="' + idx + '"]');
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
     const t = window.setTimeout(() => setFocusedBlock(-1), 2600);
@@ -556,7 +593,6 @@ export function Reader({
   useEffect(() => {
     if (!appearance.paged) return;
     const frac = pageCount > 1 ? page / (pageCount - 1) : 0;
-    setProgress(frac);
     window.clearTimeout(beaconTimer.current);
     beaconTimer.current = window.setTimeout(() => {
       const blob = new Blob([JSON.stringify({ content_item_id: contentItemId, fraction: frac })], {
@@ -592,6 +628,16 @@ export function Reader({
               data-start={b.start}
               data-end={b.end}
               data-block={i}
+              role="button"
+              tabIndex={0}
+              aria-label={"Choose a reading action for paragraph " + (i + 1)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  openBlock(event.currentTarget);
+                }
+              }}
               className={
                 "reader-text cursor-pointer whitespace-pre-wrap rounded-[4px] px-2 py-1 -mx-2 transition-all lg:mx-0 lg:px-0 " +
                 (isPending ? "bg-paper-2/60 lg:bg-transparent" : "lg:hover:bg-paper-2/40") +
@@ -642,13 +688,14 @@ export function Reader({
           <span className="font-display text-[13px] font-semibold text-ink">Reading</span>
           <button
             onClick={() => setSettingsOpen(false)}
-            className="text-[12px] text-muted transition-colors hover:text-ink"
+            className="min-h-11 px-2 text-[12px] text-muted transition-colors hover:text-ink"
             aria-label="Close reading settings"
           >
             Close
           </button>
         </div>
         <AppearancePanel appearance={appearance} onChange={applyAppearance} />
+        {appearanceStatus && <p role="status" className="mt-3 text-[12px] text-ink-soft">{appearanceStatus}</p>}
       </div>
     </>
   ) : null;
@@ -663,7 +710,7 @@ export function Reader({
       <div className="glass glass-in fixed inset-x-3 bottom-3 z-50 max-h-[80dvh] overflow-y-auto rounded-sheet p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[24rem]">
         <div className="mb-3 flex items-center justify-between">
           <span className="font-display text-[13px] font-semibold text-ink">Your notes</span>
-          <button onClick={() => setNotesOpen(false)} className="text-[12px] text-muted transition-colors hover:text-ink">
+          <button onClick={() => setNotesOpen(false)} className="min-h-11 px-2 text-[12px] text-muted transition-colors hover:text-ink">
             Close
           </button>
         </div>
@@ -679,7 +726,7 @@ export function Reader({
                 <p className="text-[13px] leading-relaxed text-ink-soft">{n.body}</p>
                 <div className="mt-1.5 flex items-center gap-3">
                   <details className="flex-1">
-                    <summary className="cursor-pointer text-[11.5px] text-muted transition-colors hover:text-ink">
+                    <summary className="flex min-h-11 cursor-pointer items-center text-[11.5px] text-muted transition-colors hover:text-ink">
                       edit
                     </summary>
                     <form action={updateNote} className="mt-2">
@@ -691,17 +738,13 @@ export function Reader({
                         rows={3}
                         className="w-full resize-y rounded-input border border-line bg-paper px-3 py-2 text-[13px] leading-relaxed text-ink"
                       />
-                      <button type="submit" className="mt-1.5 rounded-pill border border-line px-3 py-1 text-[11.5px]">
-                        Save
-                      </button>
+                      <FormSubmitButton label="Save" pendingLabel="Saving…" className="mt-1.5 rounded-pill border border-line px-3 py-1 text-[11.5px]" />
                     </form>
                   </details>
                   <form action={deleteNote}>
                     <input type="hidden" name="id" value={n.id} />
                     <input type="hidden" name="content_item_id" value={contentItemId} />
-                    <button type="submit" className="text-[11.5px] text-muted transition-colors hover:text-danger">
-                      delete
-                    </button>
+                    <ConfirmDeleteButton label="delete" question="Delete this personal note?" className="px-2 text-[11.5px] text-muted transition-colors hover:text-danger" />
                   </form>
                 </div>
               </li>
@@ -717,9 +760,7 @@ export function Reader({
             placeholder="Add a note…"
             className="w-full resize-y rounded-input border border-line bg-paper px-3 py-2 text-[13.5px] leading-relaxed text-ink placeholder:text-muted"
           />
-          <button type="submit" className="mt-2 rounded-pill bg-ink px-3.5 py-2 text-[12.5px] font-medium text-paper">
-            Save note
-          </button>
+          <FormSubmitButton label="Save note" pendingLabel="Saving…" className="mt-2 rounded-pill bg-ink px-3.5 py-2 text-[12.5px] font-medium text-paper" />
         </form>
       </div>
     </>
@@ -728,7 +769,7 @@ export function Reader({
   const notesButton = (
     <button
       onClick={() => setNotesOpen((v) => !v)}
-      className="shrink-0 text-[12px] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink"
+      className="inline-flex min-h-11 shrink-0 items-center px-2 text-[12px] text-muted underline decoration-line underline-offset-4 transition-colors hover:text-ink"
     >
       notes{notes.length > 0 ? " (" + notes.length + ")" : ""}
     </button>
@@ -754,7 +795,7 @@ export function Reader({
   const aaButton = (
     <button
       onClick={() => setSettingsOpen((v) => !v)}
-      className="glass-clear glass-press inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold text-ink-soft hover:text-ink"
+      className="glass-clear glass-press inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold text-ink-soft hover:text-ink"
       aria-label="Reading appearance"
       title="Reading appearance"
     >
@@ -783,7 +824,7 @@ export function Reader({
       <div className={"z-30 h-[3px] shrink-0 bg-transparent " + (appearance.paged ? "" : "sticky top-0")}>
         <div
           className="h-full bg-ember transition-[width] duration-150 ease-out"
-          style={{ width: Math.round(progress * 100) + "%" }}
+          style={{ width: Math.round((appearance.paged ? (pageCount > 1 ? page / (pageCount - 1) : 0) : progress) * 100) + "%" }}
         />
       </div>
 
@@ -807,7 +848,7 @@ export function Reader({
                   setMenuOpen((v) => !v);
                 }}
                 disabled={!canRun}
-                className="underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
+                className="inline-flex min-h-11 items-center px-2 underline decoration-line underline-offset-4 transition-colors hover:text-ink disabled:opacity-40"
               >
                 whole text
               </button>
@@ -854,7 +895,7 @@ export function Reader({
             <button
               onClick={() => turn(-1)}
               disabled={page === 0}
-              className="rounded-full border border-line px-3 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink disabled:opacity-30"
+              className="min-h-11 min-w-11 rounded-full border border-line px-3 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink disabled:opacity-30"
               aria-label="Previous page"
             >
               &larr;
@@ -865,7 +906,7 @@ export function Reader({
             <button
               onClick={() => turn(1)}
               disabled={page >= pageCount - 1}
-              className="rounded-full border border-line px-3 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink disabled:opacity-30"
+              className="min-h-11 min-w-11 rounded-full border border-line px-3 py-1.5 text-[13px] text-ink-soft transition-colors hover:bg-paper-2 hover:text-ink disabled:opacity-30"
               aria-label="Next page"
             >
               &rarr;
@@ -946,6 +987,12 @@ export function Reader({
           />
           <div
             data-testid="action-menu"
+            role="dialog"
+            aria-label="Actions for the whole text"
+            aria-modal="true"
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setMenuOpen(false);
+            }}
             className="glass glass-in fixed inset-x-3 bottom-3 z-50 max-h-[80dvh] overflow-y-auto rounded-sheet p-4 lg:inset-x-auto lg:bottom-6 lg:right-6 lg:w-[24rem]"
           >
             <div className="mb-3 flex items-center justify-between">
@@ -974,8 +1021,31 @@ export function Reader({
           />
           <div
             data-testid="action-picker"
+            ref={pickerRef}
+            role="dialog"
+            aria-label="Choose a reading action"
+            aria-modal="true"
+            tabIndex={-1}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.stopPropagation();
+                setPopover(null);
+              }
+              if (event.key !== "Tab") return;
+              const controls = [...event.currentTarget.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled]), select:not([disabled])")];
+              if (!controls.length) return;
+              const first = controls[0];
+              const last = controls[controls.length - 1];
+              if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+              }
+            }}
             style={{ top: popover.top, left: popover.left }}
-            className="glass glass-in fixed z-40 w-[19.5rem] max-w-[92vw] -translate-x-1/2 rounded-sheet p-3"
+            className="glass glass-in fixed z-40 max-h-[70dvh] w-[19.5rem] max-w-[92vw] -translate-x-1/2 overflow-y-auto rounded-sheet p-3 outline-none"
           >
             <IntoPicker value={intoLang} onChange={setIntoLang} />
             <div className="mt-2.5">
@@ -1018,7 +1088,7 @@ function AppearancePanel({
               key={f}
               onClick={() => pick("font", f)}
               className={
-                "rounded-input border px-3 py-1.5 text-[13px] capitalize " +
+                "min-h-11 rounded-input border px-3 py-1.5 text-[13px] capitalize " +
                 (appearance.font === f
                   ? "border-ember bg-paper-2 font-medium text-ink"
                   : "border-line text-ink-soft hover:bg-paper-2")
@@ -1045,7 +1115,7 @@ function AppearancePanel({
               key={s}
               onClick={() => pick("size", s as ReadingAppearance["size"])}
               className={
-                "rounded-input border px-3 py-1.5 " +
+                "min-h-11 min-w-11 rounded-input border px-3 py-1.5 " +
                 (appearance.size === s ? "border-ember bg-paper-2 font-medium text-ink" : "border-line text-ink-soft hover:bg-paper-2")
               }
               style={{ fontSize: px }}
@@ -1066,7 +1136,7 @@ function AppearancePanel({
               key={t.v}
               onClick={() => pick("theme", t.v)}
               className={
-                "flex h-9 w-9 items-center justify-center rounded-full border text-[12px] " +
+                "flex h-11 w-11 items-center justify-center rounded-full border text-[12px] " +
                 (appearance.theme === t.v ? "border-ember ring-2 ring-ember/30" : "border-line")
               }
               style={{ background: t.bg, color: t.fg }}
@@ -1092,7 +1162,7 @@ function AppearancePanel({
               key={label}
               onClick={() => onChange({ ...appearance, paged: v })}
               className={
-                "rounded-input border px-3 py-1.5 text-[13px] " +
+                "min-h-11 rounded-input border px-3 py-1.5 text-[13px] " +
                 (appearance.paged === v
                   ? "border-ember bg-paper-2 font-medium text-ink"
                   : "border-line text-ink-soft hover:bg-paper-2")
@@ -1112,7 +1182,7 @@ function AppearancePanel({
               key={m}
               onClick={() => pick("measure", m)}
               className={
-                "rounded-input border px-3 py-1.5 text-[13px] capitalize " +
+                "min-h-11 rounded-input border px-3 py-1.5 text-[13px] capitalize " +
                 (appearance.measure === m ? "border-ember bg-paper-2 font-medium text-ink" : "border-line text-ink-soft hover:bg-paper-2")
               }
             >
@@ -1163,6 +1233,10 @@ function GlossBody({ r }: { r: Result }) {
 
   return (
     <div className="space-y-2.5">
+      <p className="text-[11px] text-muted">
+        {findAction(r.action).label}
+        {r.targetLanguage ? " · " + (findLanguage(r.targetLanguage)?.name || r.targetLanguage) : " · language not recorded"}
+      </p>
       {variant.sections.map((s) => {
         if (s.name === "ORIGINAL") return null;
         const v = valueOf(s.name);
@@ -1188,7 +1262,7 @@ function GlossBody({ r }: { r: Result }) {
         if (s.name === "EXPLANATION") {
           return (
             <details key={s.name} className="group pt-0.5">
-              <summary className="cursor-pointer list-none text-[12px] text-muted transition-colors hover:text-ink-soft">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center text-[12px] text-muted transition-colors hover:text-ink-soft">
                 <span className="group-open:hidden">{s.label.toLowerCase()}</span>
                 <span className="hidden group-open:inline">hide</span>
               </summary>
@@ -1269,7 +1343,7 @@ function IntoPicker({ value, onChange }: { value: string; onChange: (code: strin
                 setOpen(false);
               }}
               className={
-                "rounded-pill border px-2 py-0.5 text-[11.5px] transition-colors " +
+                "min-h-11 rounded-pill border px-3 py-1 text-[11.5px] transition-colors " +
                 (l.code === value
                   ? "border-ember bg-paper-2 font-medium text-ink"
                   : "border-line text-ink-soft hover:text-ink")

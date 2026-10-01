@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const signedIn = Boolean(data.user);
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-14 sm:py-24">
       <div className="flex flex-col items-center text-center">
@@ -26,16 +30,10 @@ export default function Home() {
 
         <div className="mt-9 flex w-full max-w-xs flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
           <Link
-            href="/library"
+            href={signedIn ? "/library" : "/login"}
             className="rounded-pill bg-ember px-6 py-3 text-center font-medium text-white transition-colors hover:bg-ember-700"
           >
-            Open library
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-pill border border-line bg-paper px-6 py-3 text-center font-medium text-ink transition-colors hover:bg-paper-2"
-          >
-            Sign in
+            {signedIn ? "Open your library" : "Sign in to open your library"}
           </Link>
         </div>
 

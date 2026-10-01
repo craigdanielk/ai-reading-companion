@@ -21,6 +21,10 @@ function money(n: number): string {
   return "$" + n.toFixed(n < 1 ? 4 : 2);
 }
 
+function serverNow(): number {
+  return Date.now();
+}
+
 /**
  * Operator console. Gated by ADMIN_EMAILS and read with the service role, so
  * cost never travels through a reader's own API path.
@@ -32,7 +36,8 @@ export default async function AdminPage() {
   if (!isAdmin(auth.user.email)) redirect("/library");
 
   const admin = createAdminClient();
-  const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+  const now = serverNow();
+  const since = new Date(now - 30 * 24 * 3600 * 1000).toISOString();
 
   const [{ data: costs }, { data: books }, { data: usage }] = await Promise.all([
     admin
@@ -58,7 +63,6 @@ export default async function AdminPage() {
     .sort((a, b) => (a.email ?? "").localeCompare(b.email ?? ""));
 
   const rows = (costs ?? []) as CostRow[];
-  const now = Date.now();
   const dayAgo = now - 24 * 3600 * 1000;
   const weekAgo = now - 7 * 24 * 3600 * 1000;
 

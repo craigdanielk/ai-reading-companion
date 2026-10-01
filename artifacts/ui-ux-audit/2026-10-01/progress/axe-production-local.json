@@ -1,0 +1,140 @@
+[
+  {
+    "width": 1440,
+    "route": "/",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/login",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/privacy",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/library",
+    "actualRoute": "/library",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "actualRoute": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b/notes",
+    "actualRoute": "/saved?book=19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "actualRoute": "/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/saved",
+    "actualRoute": "/saved",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/settings",
+    "actualRoute": "/settings",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/settings/account",
+    "actualRoute": "/settings/account",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/settings/preferences",
+    "actualRoute": "/settings/preferences",
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/settings/providers",
+    "actualRoute": "/settings/providers",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/login",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/privacy",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/library",
+    "actualRoute": "/library",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "actualRoute": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/book/19f8d79c-8acf-45b4-8d78-f6e205a2be7b/notes",
+    "actualRoute": "/saved?book=19f8d79c-8acf-45b4-8d78-f6e205a2be7b",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "actualRoute": "/passage/e35096e2-8c8a-4e82-aa85-bf5e6fb7f8a5",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/saved",
+    "actualRoute": "/saved",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/settings",
+    "actualRoute": "/settings",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/settings/account",
+    "actualRoute": "/settings/account",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/settings/preferences",
+    "actualRoute": "/settings/preferences",
+    "violations": []
+  },
+  {
+    "width": 375,
+    "route": "/settings/providers",
+    "actualRoute": "/settings/providers",
+    "violations": []
+  }
+]

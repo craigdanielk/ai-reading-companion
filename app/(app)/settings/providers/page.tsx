@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { connectProvider, deleteProvider } from "@/app/actions";
+import { ActionNotice } from "@/components/ActionNotice";
+import { FormSubmitButton, ConfirmDeleteButton } from "@/components/FormButtons";
 
 export const metadata = { title: "AI providers" };
 
 const PROVIDERS = ["openai", "deepseek", "mistral"];
 
-export default async function ProvidersPage() {
+export default async function ProvidersPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
+  const { notice } = await searchParams;
   const supabase = await createClient();
   const { data: conns } = await supabase
     .from("provider_connection")
@@ -19,11 +22,12 @@ export default async function ProvidersPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
-      <Link href="/settings" className="text-sm text-muted hover:text-ember">&larr; Settings</Link>
+      <Link href="/settings" className="inline-flex min-h-11 items-center text-sm text-muted hover:text-ember">&larr; Settings</Link>
       <h1 className="mt-4 font-display text-2xl font-semibold">AI providers</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Bring your own provider account, or use the platform default.
       </p>
+      {notice && <div className="mt-4"><ActionNotice notice={notice} /></div>}
 
       <div className="mt-6 rounded-card border border-line bg-paper-2/50 p-4">
         <p className="text-xs font-medium tracking-wide text-muted">CURRENTLY USED</p>
@@ -50,9 +54,7 @@ export default async function ProvidersPage() {
               </span>
               <form action={deleteProvider}>
                 <input type="hidden" name="id" value={c.id} />
-                <button type="submit" className="rounded-pill border border-line bg-paper px-4 py-2 text-sm hover:bg-paper-2">
-                  Remove
-                </button>
+                <ConfirmDeleteButton label="Remove" question="Remove this provider connection?" className="rounded-pill border border-line bg-paper px-4 py-2 text-sm hover:bg-paper-2" />
               </form>
             </li>
           ))}
@@ -79,9 +81,7 @@ export default async function ProvidersPage() {
             <input name="api_key" type="password" placeholder="sk-…" className="mt-1 w-full rounded-input border border-line bg-paper px-3 py-3 text-[15px] text-ink" />
           </label>
         </div>
-        <button type="submit" className="rounded-pill bg-ember px-5 py-2.5 font-medium text-white hover:bg-ember-700">
-          Connect
-        </button>
+        <FormSubmitButton label="Connect" pendingLabel="Connecting…" className="rounded-pill bg-ember px-5 py-2.5 font-medium text-white hover:bg-ember-700" />
         <p className="text-xs text-muted">
           Your key is held in an encrypted vault, readable only by you, and used solely for your own
           comprehension requests. It is never stored in the application database.

@@ -6,6 +6,9 @@ import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { LangPicker } from "@/components/LangPicker";
 import { DOMAINS } from "@/lib/nuance/registry";
+import { TextOptions } from "@/components/TextOptions";
+import { ActionNotice } from "@/components/ActionNotice";
+import { FormSubmitButton } from "@/components/FormButtons";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,8 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: item?.title || "Reading" };
 }
 
-export default async function PassagePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PassagePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ notice?: string }> }) {
   const { id } = await params;
+  const { notice } = await searchParams;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
@@ -47,14 +51,16 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="flex min-h-full flex-col lg:h-full lg:min-h-0">
+      {notice && <div className="px-5 pt-2"><ActionNotice notice={notice} /></div>}
       <div className="shrink-0 border-b border-line px-5 py-2.5">
         <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted">
-          <Link href="/library" className="hover:text-ink">
+          <Link href="/library" className="inline-flex min-h-11 items-center px-1 hover:text-ink">
             &larr; Library
           </Link>
-          <details className="ml-auto">
-            <summary className="cursor-pointer hover:text-ink">Reading settings</summary>
-            <div className="mt-3 w-[min(22rem,80vw)] space-y-3 rounded-card border border-line bg-paper p-3 text-left">
+          <TextOptions>
+            <div className="space-y-3 text-left">
+              <details>
+                <summary className="flex min-h-11 cursor-pointer items-center rounded-input px-2 py-2 text-[13px] font-medium text-ink hover:bg-paper-2">Language and comprehension</summary>
               <form action={setContentProfile} className="space-y-3">
                 <input type="hidden" name="content_item_id" value={item.id} />
                 <div>
@@ -100,10 +106,9 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
                     </select>
                   </label>
                 </div>
-                <button type="submit" className="rounded-pill bg-ink px-3.5 py-1.5 text-xs font-medium text-paper">
-                  Save
-                </button>
+                <FormSubmitButton label="Save" pendingLabel="Saving…" className="rounded-pill bg-ink px-3.5 py-1.5 text-xs font-medium text-paper" />
               </form>
+              </details>
               <details className="border-t border-line pt-3">
                 <summary className="cursor-pointer text-[13px]">Edit the text</summary>
                 <form action={updateBodyText} className="mt-2 space-y-2">
@@ -120,7 +125,7 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
                 </form>
               </details>
             </div>
-          </details>
+          </TextOptions>
         </div>
       </div>
 
@@ -135,7 +140,6 @@ export default async function PassagePage({ params }: { params: Promise<{ id: st
           sourceLanguage={profile?.source_language || "auto"}
           targetLanguage={profile?.target_language || "en"}
           domain={profile?.domain || "general"}
-          depth={profile?.comprehension_depth || "intermediate"}
           reading={reading}
           initialFraction={lastFraction}
           notes={notes ?? []}

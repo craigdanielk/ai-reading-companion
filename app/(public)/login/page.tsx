@@ -29,6 +29,7 @@ export default function LoginPage() {
     // already resolved to a redirect back to /login — so the reader signed in
     // and then sat on this page. A full document request sends the new session
     // cookies and always lands in the app.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.assign("/library");
   }
 

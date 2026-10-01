@@ -1,0 +1,46 @@
+{
+  "reader-before-desktop": {
+    "viewport": [
+      1440,
+      900
+    ],
+    "scrollWidth": 1440,
+    "reader": {
+      "top": 103,
+      "width": 456
+    }
+  },
+  "reader-settings-desktop": {
+    "viewport": [
+      1440,
+      900
+    ],
+    "scrollWidth": 1440,
+    "reader": {
+      "top": 536,
+      "width": 456
+    }
+  },
+  "reader-before-mobile": {
+    "viewport": [
+      375,
+      812
+    ],
+    "scrollWidth": 375,
+    "reader": {
+      "top": 160,
+      "width": 351
+    }
+  },
+  "reader-settings-mobile": {
+    "viewport": [
+      375,
+      812
+    ],
+    "scrollWidth": 375,
+    "reader": {
+      "top": 631,
+      "width": 351
+    }
+  }
+}

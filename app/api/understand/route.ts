@@ -185,17 +185,23 @@ export async function POST(req: Request) {
           }
           const etId = selectionId ? null : await ensureExtractedText(supabase, contentItemId, full);
           if (selectionId || etId) {
-            const { error } = await supabase.from("ai_result").insert({
+            const resultPayload = {
               extracted_text_id: etId,
               selection_id: selectionId,
               mode,
               action: action.id,
+              target_language: cReq.targetLanguage,
               original: parsed.original ?? (mode === "passage" ? text : ""),
               understanding: parsed.understanding ?? "",
               terms: parsed.terms ?? [],
               key_idea: parsed.keyIdea ?? "",
               explanation: parsed.explanation ?? "",
-            });
+            };
+            let { error } = await supabase.from("ai_result").insert(resultPayload);
+            if (error && error.message.includes("target_language")) {
+              const legacyPayload = Object.fromEntries(Object.entries(resultPayload).filter(([key]) => key !== "target_language"));
+              ({ error } = await supabase.from("ai_result").insert(legacyPayload));
+            }
             if (error) console.error("ai_result insert:", error.message);
           }
         }

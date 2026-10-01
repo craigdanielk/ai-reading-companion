@@ -12,13 +12,14 @@ import {
   moveSection,
   removeSection,
 } from "@/app/actions";
-import { coverUrl } from "@/lib/covers";
 import { loadReaderData } from "@/lib/reader-data";
 import { Reader } from "@/components/Reader";
 import { Compose } from "@/components/Compose";
 import { LangPicker } from "@/components/LangPicker";
 import { KindBadge } from "@/components/KindBadge";
-import { TextList } from "@/components/TextList";
+import { TextOptions } from "@/components/TextOptions";
+import { ActionNotice } from "@/components/ActionNotice";
+import { ConfirmDeleteButton, FormSubmitButton } from "@/components/FormButtons";
 import { DOMAINS } from "@/lib/nuance/registry";
 import { TEXT_KINDS } from "@/lib/text-kinds";
 
@@ -40,18 +41,15 @@ export default async function BookPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ s?: string; at?: string }>;
+  searchParams: Promise<{ s?: string; at?: string; notice?: string }>;
 }) {
   const { id } = await params;
-  const { s, at } = await searchParams;
+  const { s, at, notice } = await searchParams;
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
 
-  const [{ data: book }, { data: allBooks }] = await Promise.all([
-    supabase.from("book").select("*").eq("id", id).single(),
-    supabase.from("book").select("id, title, author, kind").order("created_at", { ascending: false }),
-  ]);
+  const { data: book } = await supabase.from("book").select("*").eq("id", id).single();
   if (!book) notFound();
 
   const { data: sections } = await supabase
@@ -64,20 +62,13 @@ export default async function BookPage({
   const list = sections ?? [];
   const current = list.find((x) => x.id === s) ?? list[0] ?? null;
 
-  const [{ data: profile }, reader, noteCount, { data: prefs }, { data: usage }, { data: personalNotes }] = await Promise.all([
+  const [{ data: profile }, reader, { data: prefs }, { data: usage }, { data: personalNotes }] = await Promise.all([
     current
       ? supabase.from("content_profile").select("*").eq("content_item_id", current.id).maybeSingle()
       : Promise.resolve({ data: null }),
     current
       ? loadReaderData(supabase, current.id)
       : Promise.resolve({ pageNote: null, selections: [] }),
-    list.length
-      ? supabase
-          .from("selection")
-          .select("id", { count: "exact", head: true })
-          .in("content_item_id", list.map((x) => x.id))
-          .then((r) => r.count ?? 0)
-      : Promise.resolve(0),
     supabase.from("user_preference").select("*").eq("user_id", auth.user.id).maybeSingle(),
     current
       ? supabase.from("usage").select("counters").eq("content_item_id", current.id).maybeSingle()
@@ -101,26 +92,16 @@ export default async function BookPage({
   };
   const lastFraction = (usage?.counters as { lastFraction?: number } | null)?.lastFraction ?? null;
 
-  const signedCover = await coverUrl(supabase, book.cover_url);
   const multi = list.length > 1;
   const readerTitle = multi ? current?.title || book.title : book.title;
 
   return (
     <div className="flex h-full min-h-0">
-      {/* the same persistent list as the shelf, so reading and choosing are one surface */}
-      <div className="hidden w-[19rem] shrink-0 border-r border-line lg:block">
-        <TextList
-          texts={(allBooks ?? []).map((b) => ({ id: b.id, title: b.title, author: b.author, kind: b.kind }))}
-          activeId={id}
-          heading="All texts"
-          grouped
-        />
-      </div>
-
       <div className="flex min-h-0 flex-1 flex-col">
+      {notice && <div className="px-5 pt-2"><ActionNotice notice={notice} /></div>}
       <div className="shrink-0 border-b border-line px-5 py-2.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-          <Link href="/library" className="hover:text-ink">
+          <Link href="/library" className="inline-flex min-h-11 items-center px-1 hover:text-ink">
             &larr; Library
           </Link>
           <KindBadge kind={book.kind} size="sm" />
@@ -131,16 +112,17 @@ export default async function BookPage({
           {multi && <span className="truncate text-ink-soft">{book.title}</span>}
 
           <Link
-            href={"/book/" + book.id + "/notes"}
-            className={(noteCount || 0) > 0 ? "hover:text-ink" : "opacity-60 hover:text-ink"}
+            href={"/saved?book=" + book.id}
+            className="inline-flex min-h-11 items-center px-2 hover:text-ink"
           >
-            Saved{(noteCount || 0) > 0 ? " (" + noteCount + ")" : ""}
+            History
           </Link>
 
           {current && (
-            <details className="ml-auto">
-              <summary className="cursor-pointer hover:text-ink">Reading settings</summary>
-              <div className="mt-3 w-[min(22rem,80vw)] space-y-3 rounded-card border border-line bg-paper p-3 text-left">
+            <TextOptions>
+              <div className="space-y-3 text-left">
+                <details>
+                  <summary className="flex min-h-11 cursor-pointer items-center rounded-input px-2 py-2 text-[13px] font-medium text-ink hover:bg-paper-2">Language and comprehension</summary>
                 <form action={setContentProfile} className="space-y-3">
                   <input type="hidden" name="content_item_id" value={current.id} />
                   <div>
@@ -186,10 +168,9 @@ export default async function BookPage({
                       </select>
                     </label>
                   </div>
-                  <button type="submit" className="rounded-pill bg-ink px-3.5 py-1.5 text-xs font-medium text-paper">
-                    Save
-                  </button>
+                    <FormSubmitButton label="Save" pendingLabel="Saving…" className="rounded-pill bg-ink px-3.5 py-1.5 text-xs font-medium text-paper" />
                 </form>
+                </details>
 
                 <details className="border-t border-line pt-3">
                   <summary className="cursor-pointer text-[13px]">Edit the text</summary>
@@ -340,13 +321,11 @@ export default async function BookPage({
 
                   <form action={deleteBook} className="mt-3 border-t border-line pt-3">
                     <input type="hidden" name="id" value={book.id} />
-                    <button type="submit" className="text-[11px] text-ember-600 hover:underline">
-                      Delete this text and everything read in it
-                    </button>
+                    <ConfirmDeleteButton label="Delete this text and everything read in it" question="Delete this text, its answers, and your notes? This cannot be undone." className="text-[11px] text-ember-600 hover:underline" />
                   </form>
                 </details>
               </div>
-            </details>
+            </TextOptions>
           )}
         </div>
 
@@ -373,6 +352,7 @@ export default async function BookPage({
       <div className="lg:min-h-0 lg:flex-1">
         {current ? (
           <Reader
+            key={current.id}
             contentItemId={current.id}
             title={readerTitle}
             bodyText={current.body_text || ""}
@@ -382,7 +362,6 @@ export default async function BookPage({
             sourceLanguage={profile?.source_language || "auto"}
             targetLanguage={profile?.target_language || "en"}
             domain={profile?.domain || "general"}
-            depth={profile?.comprehension_depth || "intermediate"}
             focusSelection={at || null}
             reading={reading}
             initialFraction={lastFraction}

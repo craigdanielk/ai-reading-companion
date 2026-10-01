@@ -8,6 +8,7 @@ interface ResultRow {
   selection_id?: string | null;
   mode?: string | null;
   action?: string | null;
+  target_language?: string | null;
   original?: string | null;
   understanding?: string | null;
   terms?: string[] | null;
@@ -21,6 +22,7 @@ function toResult(row: ResultRow): Result {
     id: row.id,
     mode: row.mode === "page" ? "page" : "passage",
     action: row.action ?? "understand",
+    targetLanguage: row.target_language ?? null,
     original: row.original ?? null,
     understanding: row.understanding ?? null,
     terms: row.terms ?? null,
@@ -51,12 +53,12 @@ export async function loadReaderData(
 
   const ids = (sels ?? []).map((s) => s.id);
 
-  const [selRes, pageRes] = await Promise.all([
+  let [selRes, pageRes] = await Promise.all([
     ids.length
       ? supabase
           .from("ai_result")
           .select(
-            "id, selection_id, mode, action, original, understanding, terms, key_idea, explanation, created_at"
+            "id, selection_id, mode, action, target_language, original, understanding, terms, key_idea, explanation, created_at"
           )
           .in("selection_id", ids)
           .order("created_at", { ascending: false })
@@ -64,13 +66,31 @@ export async function loadReaderData(
     et
       ? supabase
           .from("ai_result")
-          .select("id, mode, action, original, understanding, terms, key_idea, explanation, created_at")
+          .select("id, mode, action, target_language, original, understanding, terms, key_idea, explanation, created_at")
           .eq("extracted_text_id", et.id)
           .eq("mode", "page")
           .order("created_at", { ascending: false })
           .limit(1)
       : Promise.resolve({ data: [] as ResultRow[] }),
   ]);
+
+  // Keep readers usable while the additive migration is being rolled out.
+  if ("error" in selRes && selRes.error?.code === "42703" && ids.length) {
+    selRes = await supabase
+      .from("ai_result")
+      .select("id, selection_id, mode, action, original, understanding, terms, key_idea, explanation, created_at")
+      .in("selection_id", ids)
+      .order("created_at", { ascending: false });
+  }
+  if ("error" in pageRes && pageRes.error?.code === "42703" && et) {
+    pageRes = await supabase
+      .from("ai_result")
+      .select("id, mode, action, original, understanding, terms, key_idea, explanation, created_at")
+      .eq("extracted_text_id", et.id)
+      .eq("mode", "page")
+      .order("created_at", { ascending: false })
+      .limit(1);
+  }
 
   const selRows = (selRes.data ?? []) as ResultRow[];
   const pageRow = ((pageRes.data ?? []) as ResultRow[])[0] ?? null;

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { BookCover } from "@/components/BookCover";
-import { TextList } from "@/components/TextList";
 import { LangBadge } from "@/components/LangBadge";
 import { KIND_ORDER, findKind, TEXT_KINDS } from "@/lib/text-kinds";
 import { coverUrl } from "@/lib/covers";
 import { SearchBox } from "@/components/SearchBox";
+import { ActionNotice } from "@/components/ActionNotice";
 
 function snippet(text: string, term: string): string {
   const i = text.toLowerCase().indexOf(term.toLowerCase());
@@ -20,9 +20,9 @@ export const metadata = { title: "Library" };
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string; q?: string }>;
+  searchParams: Promise<{ kind?: string; q?: string; notice?: string }>;
 }) {
-  const { kind, q } = await searchParams;
+  const { kind, q, notice } = await searchParams;
   const term = (q || "").trim();
   const activeKind = TEXT_KINDS.some((k) => k.code === kind) ? (kind as string) : null;
 
@@ -93,26 +93,15 @@ export default async function LibraryPage({
   const buckets = (activeKind ? [activeKind] : KIND_ORDER)
     .map((code) => ({
       kind: findKind(code),
-      items: all.filter((b) => (b.kind || "book") === code),
+      items: visible.filter((b) => (b.kind || "book") === code),
     }))
     .filter((b) => b.items.length > 0);
 
   return (
-    <div className="flex h-full min-h-0">
-      {/* middle pane — the texts, always visible so switching never means going back */}
-      <div className="hidden w-[19rem] shrink-0 flex-col border-r border-line lg:flex">
-        <SearchBox />
-        <div className="min-h-0 flex-1">
-        <TextList
-          texts={visible.map((b) => ({ id: b.id, title: b.title, author: b.author, kind: b.kind }))}
-          heading={heading}
-          grouped={!activeKind && !term}
-        />
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto">
         <main className="mx-auto w-full max-w-4xl px-5 py-8 lg:py-10">
+          {notice && <div className="mb-4"><ActionNotice notice={notice} /></div>}
+          <div className="-mx-3 mb-5 md:hidden"><SearchBox /></div>
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h1 className="font-display text-[26px] font-semibold leading-tight lg:text-[30px]">{heading}</h1>
             {activeKind && (
@@ -121,6 +110,15 @@ export default async function LibraryPage({
               </Link>
             )}
           </div>
+
+          <nav aria-label="Text kinds" className="-mx-5 mt-5 flex gap-2 overflow-x-auto px-5 pb-2 md:hidden">
+            <Link href="/library" aria-current={!activeKind ? "page" : undefined} className={"flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-pill border px-3 py-2 text-[12px] " + (!activeKind ? "border-ember bg-paper-2 font-medium text-ink" : "border-line text-ink-soft")}>All</Link>
+            {TEXT_KINDS.map((item) => (
+              <Link key={item.code} href={"/library?kind=" + item.code} aria-current={activeKind === item.code ? "page" : undefined} className={"flex min-h-11 shrink-0 items-center rounded-pill border px-3 py-2 text-[12px] " + (activeKind === item.code ? "border-ember bg-paper-2 font-medium text-ink" : "border-line text-ink-soft")}>
+                {item.plural}
+              </Link>
+            ))}
+          </nav>
 
           {buckets.map((bucket) => (
             <section key={bucket.kind.code} className="mt-10">
@@ -175,7 +173,7 @@ export default async function LibraryPage({
               <ul className="mt-4 space-y-3">
                 {inText.map((h) => {
                   const host = all.find((b) => b.id === h.book_id);
-                  if (!host) return null;
+                  if (!host || (activeKind && (host.kind || "book") !== activeKind)) return null;
                   return (
                     <li key={h.id}>
                       <Link
@@ -202,7 +200,7 @@ export default async function LibraryPage({
 
           {all.length === 0 && orphans.length === 0 && (
             <p className="mt-14 max-w-[34rem] text-[14px] leading-relaxed text-muted">
-              Nothing on the shelf yet. Use <span className="text-ink">New text</span> to add a book, a
+              Nothing on the shelf yet. Use <span className="text-ink">New</span> to add a book, a
               paper, an article, a poem or a note — it lands here under its kind.
             </p>
           )}
@@ -222,7 +220,6 @@ export default async function LibraryPage({
             </section>
           )}
         </main>
-      </div>
     </div>
   );
 }

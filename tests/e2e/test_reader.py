@@ -60,6 +60,34 @@ def test_reader_does_not_translate_on_open(page):
     assert "understanding" not in body, "a gloss appeared unprompted"
     assert "nothing is translated until you ask" in body, "the reader should say what it is waiting for"
 
+def test_paged_reader_resumes_last_page(page):
+    page.goto(BASE_URL + "/library")
+    create_text(page, ("A long paragraph for a page turn. " * 14 + "\n\n") * 24)
+    page.get_by_label("Reading appearance").click()
+    page.get_by_role("button", name="Pages", exact=True).click()
+    page.get_by_label("Close reading settings").click()
+    next_page = page.get_by_label("Next page")
+    page.wait_for_function("!document.querySelector('[aria-label=\"Next page\"]')?.disabled")
+    next_page.click()
+    number = next_page.evaluate("el => el.previousElementSibling?.textContent?.trim()")
+    assert number and number.startswith("2 /"), number
+    page.wait_for_timeout(1800)
+    page.reload()
+    page.wait_for_function("document.querySelector('[aria-label=\"Next page\"]')?.previousElementSibling?.textContent?.trim().startsWith('2 /')", timeout=15000)
+
+def test_action_picker_keyboard_opens_and_returns_focus(page):
+    href = first_book_href(page)
+    page.goto(BASE_URL + href)
+    paragraph = page.locator("[data-start]").first
+    paragraph.focus()
+    paragraph.press("Enter")
+    picker = page.get_by_role("dialog", name="Choose a reading action")
+    assert picker.is_visible()
+    assert picker.evaluate("el => el.contains(document.activeElement) || el === document.activeElement")
+    picker.press("Escape")
+    assert not picker.is_visible()
+    assert paragraph.evaluate("el => el === document.activeElement")
+
 def test_reader_offers_all_three_selection_scopes(page):
     """A word, a paragraph, or the whole text."""
     href = first_book_href(page)
@@ -70,4 +98,3 @@ def test_reader_offers_all_three_selection_scopes(page):
     assert page.query_selector("[data-start]"), "no paragraph to tap"
     assert page.query_selector("[data-start]"), "no paragraph to select"
     page.wait_for_timeout(200)
-

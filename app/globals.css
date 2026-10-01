@@ -8,7 +8,7 @@
   /* Neutrals (warm — never pure black/white for text surfaces) */
   --ink: #221B17;
   --ink-soft: #5A4B41;
-  --muted: #8C7A6B;
+  --muted: #6B5647;
   --line: #E8DFD5;
   --paper: #FDFAF6;
   --paper-2: #F6EEE5;
@@ -133,13 +133,18 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--ember-600);
+  outline-offset: 2px;
+}
+
 /* Reading themes — the device surface changes, the app chrome does not.
    Tokens are referenced through @theme inline, so overriding the raw values here
    re-tints every bg-paper / text-ink / border-line inside the themed subtree. */
 [data-theme="sepia"] {
   --ink: #3B2E1E;
   --ink-soft: #5C4A32;
-  --muted: #8A7353;
+  --muted: #665138;
   --line: #D9C7A8;
   --paper: #F2E7CF;
   --paper-2: #EADCC0;

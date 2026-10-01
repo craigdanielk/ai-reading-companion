@@ -1,0 +1,26 @@
+{
+  "url": "https://ai-reading-companion-alpha.vercel.app/library",
+  "http_status": 200,
+  "fetch_error": null,
+  "headers": {
+    "content-type": "text/html; charset=utf-8",
+    "x-fetch-ms": "650"
+  },
+  "html_length": 35022,
+  "screenshots": [
+    {
+      "viewport": "desktop",
+      "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/library_desktop.png",
+      "width": 1440,
+      "height": 900,
+      "visible_elements": 118
+    },
+    {
+      "viewport": "mobile",
+      "path": "/Users/craigkunte/Developer/GitHub/services/ai-reading-companion/artifacts/ui-ux-audit/2026-10-01/screenshots/library_mobile.png",
+      "width": 375,
+      "height": 812,
+      "visible_elements": 70
+    }
+  ]
+}
